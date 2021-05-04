@@ -272,7 +272,6 @@ void loop() {
   if (bv == 1) { // short press
     Serial.println("Begin playing!");
     begin_game = 1;
-    timer = millis();
     song_timer = millis();
     song_state = 1;
   }
@@ -284,7 +283,7 @@ void loop() {
     }
 
   if (begin_game) {
-    if (millis() - timer > time_per_beat * 8 && step_num < 4) {
+    if (millis() - song_timer > time_per_beat * 8 * (step_num + 1) && step_num < 4) {
       step_num += 1;
       int result = similarity_score(8, move_iter);
       //      tft.printf("Score: %d, Reps: %d \n", result, move_iter);
@@ -292,7 +291,6 @@ void loop() {
       justdance += result; // add to running total score
       Serial.printf("Score: %d, Reps: %d \n", result, move_iter);
       move_iter = 0;
-      timer = millis();
     } else if (step_num == 4) { // reset all values, enter game end state
       game_end = 1;
       song_state = 0;
