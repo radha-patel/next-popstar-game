@@ -30,6 +30,7 @@ const int beats = 4;
 uint32_t timer;
 bool begin_game = false;
 float dance_time = 0;
+bool init_screen = true;
 
 int punch_state = 0; // Move 1
 int hand_roll_state = 0; // Move 2
@@ -190,7 +191,8 @@ class Button {
   }
 };
 
-Button button(BUTTON1); //button object!
+Button button(BUTTON1);
+Button button2(BUTTON2);
 
 void setup() {
   tft.init();
@@ -255,22 +257,20 @@ void setup() {
 
 
 void loop() {
-  uint8_t button1 = db_button1(digitalRead(BUTTON1));
-  uint8_t button2 = db_button2(digitalRead(BUTTON2));
-
   // Running acceleration values
   imu.readAccelData(imu.accelCount);
   x = imu.accelCount[0] * imu.aRes * ZOOM;
   y = imu.accelCount[1] * imu.aRes * ZOOM;
   z = imu.accelCount[2] * imu.aRes * ZOOM;
 
-  // Print on Serial Plotter
-  // char output[80];
-  //  sprintf(output, "%f,%f,%f", x, y, z);
-  //  Serial.printf("x: %f, y: %f, z: %f \n", x, y, z);
-  //  Serial.println(output);
+  if (init_screen) {
+    draw_home_screen();
+    init_screen = false;
+  }
+
   
   int bv = button.update();
+  int b2 = button2.update();
   if (bv == 1) { // short press
     Serial.println("Begin playing!");
     begin_game = 1;
@@ -278,6 +278,12 @@ void loop() {
     song_state = 1;
     step_num = 0;
     dance_time = time_per_beat * choreo_timing[step_num];
+  }
+
+  if (b2 == 1) { // short press
+    tft.drawRect(15, 81, 48, 58, WHITE);
+    tft.drawRect(14, 80, 50, 60, WHITE);
+    tft.drawRect(13, 79, 52, 62, WHITE);
   }
 
   if (game_end) { // POST state
@@ -364,29 +370,4 @@ int similarity_score(int correct, int actual) {
   } else {
     return 0;
   }
-}
-
-uint8_t db_button1(uint8_t input) {
-  if (input != db_state1) {
-    db_count1++;
-    if (db_count1 > DB_COUNT_THRESHOLD) {
-      db_state1 = !db_state1;
-    }
-  } else {
-    db_count1 = 0;
-  }
-  return db_state1;
-}
-
-
-uint8_t db_button2(uint8_t input) {
-  if (input != db_state2) {
-    db_count2++;
-    if (db_count2 > DB_COUNT_THRESHOLD) {
-      db_state2 = !db_state2;
-    }
-  } else {
-    db_count2 = 0;
-  }
-  return db_state2;
 }
