@@ -29,6 +29,7 @@ int training_trials = 1;
 const int beats = 4;
 uint32_t timer;
 bool begin_game = false;
+float dance_time = 0;
 
 int punch_state = 0; // Move 1
 int hand_roll_state = 0; // Move 2
@@ -47,6 +48,7 @@ const uint16_t ORANGE = 0xFDA0;
 const uint16_t WHITE = 0xFFFF;
 
 float choreo[4] = {1, 2, 3, 4};
+float choreo_timing[4] = {4, 8, 16, 4};
 int step_num = 0;
 
 int song_state = 0;
@@ -274,6 +276,8 @@ void loop() {
     begin_game = 1;
     song_timer = millis();
     song_state = 1;
+    step_num = 0;
+    dance_time = time_per_beat * choreo_timing[step_num];
   }
 
   if (game_end) { // POST state
@@ -283,8 +287,9 @@ void loop() {
     }
 
   if (begin_game) {
-    if (millis() - song_timer > time_per_beat * 8 * (step_num + 1) && step_num < 4) {
+    if (step_num < 4 && millis() - song_timer > dance_time) {
       step_num += 1;
+      dance_time += time_per_beat * choreo_timing[step_num];
       int result = similarity_score(8, move_iter);
       //      tft.printf("Score: %d, Reps: %d \n", result, move_iter);
       sprintf(display_score, "%sScore: %d, Reps: %d \n", display_score, result, move_iter);
