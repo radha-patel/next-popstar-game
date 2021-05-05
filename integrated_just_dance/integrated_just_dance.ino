@@ -285,7 +285,8 @@ void loop() {
   if (game_end) { // POST state
     Serial.println("you made it to the end!");
     post_score(just_dance_total);
-    game_end = 0;
+    game_end = false;
+    reset_dance_states();
   }
 
   if (begin_game) {
@@ -294,25 +295,14 @@ void loop() {
       new_move = true;
       step_num += 1;
       dance_time += time_per_beat * choreo_timing[step_num];
-      if (result == 0) {
-        sprintf(individual_scores, "%s: %s\n", individual_scores, "/");
-      } else if (result == 1) {
-        sprintf(individual_scores, "%s: %s\n", individual_scores, "*");
-      } else if (result == 2) {
-        sprintf(individual_scores, "%s: %s\n", individual_scores, "**");
-      } else if (result == 3) {
-        sprintf(individual_scores, "%s: %s\n", individual_scores, "***");
-      } else if (result == 4) {
-        sprintf(individual_scores, "%s: %s\n", individual_scores, "****");
-      } else if (result == 5) {
-        sprintf(individual_scores, "%s: %s\n", individual_scores, "*****");
-      }
+      add_stars(result);
       just_dance_total += result; // add to running total score
       move_iter = 0;
       tft.fillRect(0, 0, 128, 20, BLACK);
     } else if (step_num == 4) { // reset all values, enter game end state
-      game_end = 1;
+      game_end = true;
       song_state = 0;
+      new_move = true;
       begin_game = false;
       step_num = 0;
       ledcWriteTone(AUDIO_PWM, 0);
@@ -397,5 +387,29 @@ int similarity_score(int correct, int actual) {
     return 1;
   } else {
     return 0;
+  }
+}
+
+void reset_dance_states() {
+  punch_state = 0;
+  hand_roll_state = 0;
+  wave_state = 0;
+  bounce_state = 0;
+  move_iter = 0;
+}
+
+void add_stars(int results) {
+  if (result == 0) {
+    sprintf(individual_scores, "%s: %s\n", individual_scores, "/");
+  } else if (result == 1) {
+    sprintf(individual_scores, "%s: %s\n", individual_scores, "*");
+  } else if (result == 2) {
+    sprintf(individual_scores, "%s: %s\n", individual_scores, "**");
+  } else if (result == 3) {
+    sprintf(individual_scores, "%s: %s\n", individual_scores, "***");
+  } else if (result == 4) {
+    sprintf(individual_scores, "%s: %s\n", individual_scores, "****");
+  } else if (result == 5) {
+    sprintf(individual_scores, "%s: %s\n", individual_scores, "*****");
   }
 }
