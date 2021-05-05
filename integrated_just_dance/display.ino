@@ -9,3 +9,10 @@ void draw_home_screen() {
   tft.drawString("Rhythm", 76, 100, 1);
   tft.drawString("Game", 82, 110, 1);
 }
+
+void load_game() {
+  tft.fillScreen(TFT_BLACK);
+  tft.drawString("Starting Just Dance", 7, 35, 1);
+  tft.drawString("Get ready to move!", 12, 50, 1);
+  delay(2000);
+}

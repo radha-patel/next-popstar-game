@@ -38,6 +38,9 @@ int wave_state = 0; // Move 3
 int bounce_state = 0; // Move 4
 int move_iter = 0;
 
+int game_state = 0;
+int selected_game = 0; // 1 is Just Dance, 2 is Rhythm Game
+
 const uint16_t GREEN = 0x07e0;
 const uint16_t BLACK = 0x0000;
 const uint16_t MAROON = 0x7800;
@@ -100,7 +103,7 @@ char host[] = "608dev-2.net";
 char request[2000];
 int game_end;
 char* user = "testuser";
-int justdance = 0;
+int just_dance_total = 0;
 char display_score[500] = "";
 
 //Some constants and some resources:
@@ -251,12 +254,12 @@ void setup() {
   song_timer = millis();
 
   game_end = 0;
-  justdance = 0;
+  just_dance_total = 0;
   song_index = 0;
 }
 
 
-void loop() {
+void loop() {  
   // Running acceleration values
   imu.readAccelData(imu.accelCount);
   x = imu.accelCount[0] * imu.aRes * ZOOM;
@@ -273,6 +276,7 @@ void loop() {
   int b2 = button2.update();
   if (bv == 1) { // short press
     Serial.println("Begin playing!");
+    load_game();
     begin_game = 1;
     song_timer = millis();
     song_state = 1;
@@ -280,26 +284,21 @@ void loop() {
     dance_time = time_per_beat * choreo_timing[step_num];
   }
 
-  if (b2 == 1) { // short press
-    tft.drawRect(15, 81, 48, 58, WHITE);
-    tft.drawRect(14, 80, 50, 60, WHITE);
-    tft.drawRect(13, 79, 52, 62, WHITE);
-  }
-
+  select_game(b2);
+  
   if (game_end) { // POST state
     Serial.println("you made it to the end!");
-    post_score(justdance);
+    post_score(just_dance_total);
     game_end = 0;
     }
 
   if (begin_game) {
     if (step_num < 4 && millis() - song_timer > dance_time) {
+      int result = similarity_score(choreo_timing[step_num], move_iter);
       step_num += 1;
       dance_time += time_per_beat * choreo_timing[step_num];
-      int result = similarity_score(8, move_iter);
-      //      tft.printf("Score: %d, Reps: %d \n", result, move_iter);
       sprintf(display_score, "%sScore: %d, Reps: %d \n", display_score, result, move_iter);
-      justdance += result; // add to running total score
+      just_dance_total += result; // add to running total score
       Serial.printf("Score: %d, Reps: %d \n", result, move_iter);
       move_iter = 0;
     } else if (step_num == 4) { // reset all values, enter game end state
@@ -311,7 +310,7 @@ void loop() {
       tft.fillScreen(TFT_BLACK);
       tft.printf(display_score);
       Serial.println("just dance score:");
-      Serial.println(justdance);
+      Serial.println(just_dance_total);
     }
 
     // music playing section
@@ -369,5 +368,44 @@ int similarity_score(int correct, int actual) {
     return 1;
   } else {
     return 0;
+  }
+}
+
+void select_game(int button) {
+  switch(game_state) {
+    case 0:
+      if (button == 1) {
+        game_state = 1;
+      }
+      break;
+    case 1:
+      if (button == 0) {
+        game_state = 2;
+        tft.drawRect(69, 81, 48, 58, BLACK);
+        tft.drawRect(68, 80, 50, 60, ST7735_GREEN);
+        tft.drawRect(67, 79, 52, 62, BLACK);
+        tft.drawRect(15, 81, 48, 58, WHITE);
+        tft.drawRect(14, 80, 50, 60, WHITE);
+        tft.drawRect(13, 79, 52, 62, WHITE);
+        selected_game = 1;
+      }
+      break;
+    case 2:
+      if (button == 1) {
+        game_state = 3;
+      }
+      break;
+    case 3:
+      if (button == 0) {
+        game_state = 0;
+        tft.drawRect(15, 81, 48, 58, BLACK);
+        tft.drawRect(14, 80, 50, 60, ST7735_GREEN);
+        tft.drawRect(13, 79, 52, 62, BLACK);
+        tft.drawRect(69, 81, 48, 58, WHITE);
+        tft.drawRect(68, 80, 50, 60, WHITE);
+        tft.drawRect(67, 79, 52, 62, WHITE);
+        selected_game = 2;
+      }
+      break;
   }
 }
