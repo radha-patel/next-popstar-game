@@ -31,6 +31,8 @@ uint32_t timer;
 bool begin_game = false;
 float dance_time = 0;
 bool init_screen = true;
+bool home_screen = true;
+bool end_screen = false;
 bool new_move = true;
 
 int punch_state = 0; // Move 1
@@ -40,6 +42,7 @@ int bounce_state = 0; // Move 4
 int move_iter = 0;
 
 int game_state = 0;
+int finish_state = 0;
 int selected_game = 0; // 1 is Just Dance, 2 is Rhythm Game
 
 const uint16_t GREEN = 0x07e0;
@@ -270,17 +273,24 @@ void loop() {
   
   int bv = button.update();
   int b2 = button2.update();
-  if (bv == 1) { // short press
-    Serial.println("Begin playing!");
-    load_game();
-    begin_game = 1;
-    song_timer = millis();
-    song_state = 1;
-    step_num = 0;
-    dance_time = time_per_beat * choreo_timing[step_num];
+//  if (bv == 2) { // long press
+//    home_screen = false;
+//    end_screen = true;
+//    load_game();
+//    begin_game = 1;
+//    song_timer = millis();
+//    song_state = 1;
+//    step_num = 0;
+//    dance_time = time_per_beat * choreo_timing[step_num];
+//  }
+
+  if (home_screen) {
+    select_game(bv); 
   }
 
-  select_game(b2);
+  if (end_screen) {
+    finish_game(bv);
+  }
   
   if (game_end) { // POST state
     Serial.println("you made it to the end!");
@@ -397,44 +407,5 @@ int similarity_score(int correct, int actual) {
     return 1;
   } else {
     return 0;
-  }
-}
-
-void select_game(int button) {
-  switch(game_state) {
-    case 0:
-      if (button == 1) {
-        game_state = 1;
-      }
-      break;
-    case 1:
-      if (button == 0) {
-        game_state = 2;
-        tft.drawRect(69, 81, 48, 58, BLACK);
-        tft.drawRect(68, 80, 50, 60, ST7735_GREEN);
-        tft.drawRect(67, 79, 52, 62, BLACK);
-        tft.drawRect(15, 81, 48, 58, WHITE);
-        tft.drawRect(14, 80, 50, 60, WHITE);
-        tft.drawRect(13, 79, 52, 62, WHITE);
-        selected_game = 1;
-      }
-      break;
-    case 2:
-      if (button == 1) {
-        game_state = 3;
-      }
-      break;
-    case 3:
-      if (button == 0) {
-        game_state = 0;
-        tft.drawRect(15, 81, 48, 58, BLACK);
-        tft.drawRect(14, 80, 50, 60, ST7735_GREEN);
-        tft.drawRect(13, 79, 52, 62, BLACK);
-        tft.drawRect(69, 81, 48, 58, WHITE);
-        tft.drawRect(68, 80, 50, 60, WHITE);
-        tft.drawRect(67, 79, 52, 62, WHITE);
-        selected_game = 2;
-      }
-      break;
   }
 }
