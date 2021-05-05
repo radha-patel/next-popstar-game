@@ -72,7 +72,7 @@ void select_game(int button) {
       home_screen = false;
       end_screen = true;
       load_game();
-      begin_game = 1;
+      begin_game = true;
       song_timer = millis();
       song_state = 1;
       step_num = 0;
@@ -101,6 +101,11 @@ void finish_game(int button) {
       if (button == 2) {
         tft.fillScreen(BLACK);
         draw_home_screen();
+        memset(individual_scores, 0, 500);
+        just_dance_total = 0;
+        home_screen = true;
+        end_screen = false;
+        finish_state = 0;
       }
       break;
   }

@@ -273,17 +273,7 @@ void loop() {
   
   int bv = button.update();
   int b2 = button2.update();
-//  if (bv == 2) { // long press
-//    home_screen = false;
-//    end_screen = true;
-//    load_game();
-//    begin_game = 1;
-//    song_timer = millis();
-//    song_state = 1;
-//    step_num = 0;
-//    dance_time = time_per_beat * choreo_timing[step_num];
-//  }
-
+  
   if (home_screen) {
     select_game(bv); 
   }
@@ -323,7 +313,7 @@ void loop() {
     } else if (step_num == 4) { // reset all values, enter game end state
       game_end = 1;
       song_state = 0;
-      begin_game = 0;
+      begin_game = false;
       step_num = 0;
       ledcWriteTone(AUDIO_PWM, 0);
       just_dance_end();
