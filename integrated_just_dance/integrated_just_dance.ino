@@ -31,6 +31,7 @@ uint32_t timer;
 bool begin_game = false;
 float dance_time = 0;
 bool init_screen = true;
+bool new_move = true;
 
 int punch_state = 0; // Move 1
 int hand_roll_state = 0; // Move 2
@@ -52,11 +53,12 @@ const uint16_t ORANGE = 0xFDA0;
 const uint16_t WHITE = 0xFFFF;
 
 float choreo[4] = {1, 2, 3, 4};
-float choreo_timing[4] = {4, 8, 16, 4};
+float choreo_timing[4] = {8, 8, 8, 8};
 int step_num = 0;
 
 int song_state = 0;
 int song_index = 0;
+
 struct Riff {
   double notes[768]; //the notes (array of doubles containing frequencies in Hz. I used https://pages.mtu.edu/~suits/notefreqs.html
   int length; //number of notes (essentially length of array.
@@ -104,7 +106,7 @@ char request[2000];
 int game_end;
 char* user = "testuser";
 int just_dance_total = 0;
-char display_score[500] = "";
+char individual_scores[500] = "";
 
 //Some constants and some resources:
 const int RESPONSE_TIMEOUT = 6000; //ms to wait for response from host
@@ -258,19 +260,13 @@ void setup() {
   song_index = 0;
 }
 
-
 void loop() {  
-  // Running acceleration values
-  imu.readAccelData(imu.accelCount);
-  x = imu.accelCount[0] * imu.aRes * ZOOM;
-  y = imu.accelCount[1] * imu.aRes * ZOOM;
-  z = imu.accelCount[2] * imu.aRes * ZOOM;
+  read_accel();
 
   if (init_screen) {
     draw_home_screen();
     init_screen = false;
   }
-
   
   int bv = button.update();
   int b2 = button2.update();
@@ -290,27 +286,37 @@ void loop() {
     Serial.println("you made it to the end!");
     post_score(just_dance_total);
     game_end = 0;
-    }
+  }
 
   if (begin_game) {
     if (step_num < 4 && millis() - song_timer > dance_time) {
       int result = similarity_score(choreo_timing[step_num], move_iter);
+      new_move = true;
       step_num += 1;
       dance_time += time_per_beat * choreo_timing[step_num];
-      sprintf(display_score, "%sScore: %d, Reps: %d \n", display_score, result, move_iter);
+      if (result == 0) {
+        sprintf(individual_scores, "%s: %s\n", individual_scores, "/");
+      } else if (result == 1) {
+        sprintf(individual_scores, "%s: %s\n", individual_scores, "*");
+      } else if (result == 2) {
+        sprintf(individual_scores, "%s: %s\n", individual_scores, "**");
+      } else if (result == 3) {
+        sprintf(individual_scores, "%s: %s\n", individual_scores, "***");
+      } else if (result == 4) {
+        sprintf(individual_scores, "%s: %s\n", individual_scores, "****");
+      } else if (result == 5) {
+        sprintf(individual_scores, "%s: %s\n", individual_scores, "*****");
+      }
       just_dance_total += result; // add to running total score
-      Serial.printf("Score: %d, Reps: %d \n", result, move_iter);
       move_iter = 0;
+      tft.fillRect(0, 0, 128, 20, BLACK);
     } else if (step_num == 4) { // reset all values, enter game end state
       game_end = 1;
       song_state = 0;
       begin_game = 0;
       step_num = 0;
       ledcWriteTone(AUDIO_PWM, 0);
-      tft.fillScreen(TFT_BLACK);
-      tft.printf(display_score);
-      Serial.println("just dance score:");
-      Serial.println(just_dance_total);
+      just_dance_end();
     }
 
     // music playing section
@@ -331,15 +337,38 @@ void loop() {
       }
   
     if (choreo[step_num] == 1) {
+      if (new_move) {
+        sprintf(individual_scores, "%s%s", individual_scores, "Punch");
+        new_move = false;
+      }
       punch();
     } else if (choreo[step_num] == 2) {
+      if (new_move) {
+        sprintf(individual_scores, "%s%s", individual_scores, "Hand Roll");
+        new_move = false;
+      }
       hand_roll();
     } else if (choreo[step_num] == 3) {
+      if (new_move) {
+        sprintf(individual_scores, "%s%s", individual_scores, "Wave");
+        new_move = false;
+      }
       wave();
     } else if (choreo[step_num] == 4) {
+      if (new_move) {
+        sprintf(individual_scores, "%s%s", individual_scores, "Bounce");
+        new_move = false;
+      }
       bounce();
     }
   }
+}
+
+void read_accel() {
+  imu.readAccelData(imu.accelCount);
+  x = imu.accelCount[0] * imu.aRes * ZOOM;
+  y = imu.accelCount[1] * imu.aRes * ZOOM;
+  z = imu.accelCount[2] * imu.aRes * ZOOM;
 }
 
 void post_score(int score) {

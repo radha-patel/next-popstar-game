@@ -16,3 +16,13 @@ void load_game() {
   tft.drawString("Get ready to move!", 12, 50, 1);
   delay(2000);
 }
+
+void just_dance_end() {
+  tft.fillScreen(TFT_BLACK);
+  tft.drawString("Total Score:", 25, 30, 2);
+  char score[5];
+  sprintf(score, "%d", just_dance_total);
+  tft.drawString(score, 56, 45, 2);
+  tft.setCursor(0, 70, 1); 
+  tft.printf(individual_scores);
+}

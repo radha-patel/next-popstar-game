@@ -1,7 +1,8 @@
 void punch() {
   switch(punch_state) {
     case 0:
-      tft.fillScreen(GREEN);
+      tft.fillRect(0, 0, 128 * move_iter / choreo_timing[step_num], 20, WHITE);
+      tft.fillRect(0, 20, 128, 140, GREEN);
       punch_state = 1;
       break;
     case 1:
@@ -23,7 +24,8 @@ void punch() {
 void hand_roll() {
   switch(hand_roll_state) {
     case 0:
-      tft.fillScreen(PURPLE);
+      tft.fillRect(0, 0, 128 * move_iter / choreo_timing[step_num], 20, WHITE);
+      tft.fillRect(0, 20, 128, 140, PURPLE);
       hand_roll_state = 1;
       break;
     case 1: 
@@ -55,29 +57,23 @@ void hand_roll() {
 void wave() {
   switch(wave_state) {
     case 0:
-      tft.fillScreen(BLUE);
+      tft.fillRect(0, 0, 128 * move_iter / choreo_timing[step_num], 20, WHITE);
+      tft.fillRect(0, 20, 128, 140, BLUE);
       wave_state = 1;
       break;
     case 1:
       if (y < -9) {
         wave_state = 2;
+        Serial.println("Wave: stage 1");
       }
       break;
     case 2:
-      if (x > -7) {
-        wave_state = 3;
-      }
-    case 3:
-      if (x < -10) {
-        wave_state = 4;
-      }
-      break;
-    case 4:
       if (y > 11) {
-        wave_state = 5;
+        wave_state = 3;
+        Serial.println("Wave: state 2");
       }
       break;
-    case 5:
+    case 3:
       wave_state = 0;
       move_iter += 1;
   }
@@ -86,7 +82,8 @@ void wave() {
 void bounce() {
   switch(bounce_state) {
     case 0:
-      tft.fillScreen(MAGENTA);
+      tft.fillRect(0, 0, 128 * move_iter / choreo_timing[step_num], 20, WHITE);
+      tft.fillRect(0, 20, 128, 140, MAGENTA);
       bounce_state = 1;
       break;
     case 1:
