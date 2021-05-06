@@ -39,6 +39,9 @@ int punch_state = 0; // Move 1
 int hand_roll_state = 0; // Move 2
 int wave_state = 0; // Move 3
 int bounce_state = 0; // Move 4
+int sprinkler_state = 0; // Move 5
+int arm_cross_state = 0; // Move 6
+int disco_state = 0; // Move 7
 int move_iter = 0;
 
 int game_state = 0;
@@ -54,9 +57,12 @@ const uint16_t RED = 0xF800;
 const uint16_t MAGENTA = 0xF81F;
 const uint16_t ORANGE = 0xFDA0;
 const uint16_t WHITE = 0xFFFF;
+const uint16_t YELLOW = 0xFFE0;
+const uint16_t CYAN = 0x07FF;
+const int STEP_COUNT = 4;
 
-float choreo[4] = {1, 2, 3, 4};
-float choreo_timing[4] = {36, 36, 36, 31};
+float choreo[STEP_COUNT] = {5, 6, 7, 1};
+float choreo_timing[STEP_COUNT] = {8, 8, 8, 8};
 int step_num = 0;
 
 int song_state = 0;
@@ -83,7 +89,7 @@ Riff riptide = {{466.16, 466.16, 523.25, 523.25, 554.37, 554.37, 622.25, 698.46,
 622.25, 622.25, 622.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 554.37, 554.37, 554.37, 698.46, 698.46, 622.25, 622.25, 622.25, 554.37, 554.37, 554.37, 698.46, 698.46, 622.25, 622.25, 622.25, 622.25, 622.25, 622.25, 554.37, 554.37, 554.37, 466.16, 466.16, 466.16, 554.37, 554.37, 554.37, 554.37, 554.37, 554.37, 554.37, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 622.25, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0, 0, 0, 0, 0, 698.46, 698.46, 622.25, 622.25, 698.46,
 698.46, 622.25, 622.25, 698.46, 622.25, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 622.25, 622.25, 622.25, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0}, 556, 150.00};
 
-Riff song_to_play = riptide;
+Riff song_to_play = stereo;
 
 const uint32_t READING_PERIOD = 150; //milliseconds
 double MULT = 1.059463094359; //12th root of 2 (precalculated) for note generation
@@ -294,7 +300,7 @@ void loop() {
   }
 
   if (begin_game) {
-    if (step_num < 4 && millis() - song_timer > dance_time) {
+    if (step_num < STEP_COUNT && millis() - song_timer > dance_time) {
       int result = similarity_score(choreo_timing[step_num], move_iter);
       new_move = true;
       step_num += 1;
@@ -303,7 +309,7 @@ void loop() {
       just_dance_total += result; // add to running total score
       move_iter = 0;
       tft.fillRect(0, 0, 128, 20, BLACK);
-    } else if (step_num == 4) { // reset all values, enter game end state
+    } else if (step_num == STEP_COUNT) { // reset all values, enter game end state
       game_end = true;
       song_state = 0;
       new_move = true;
@@ -354,6 +360,24 @@ void loop() {
         new_move = false;
       }
       bounce();
+    } else if (choreo[step_num] == 5) {
+      if (new_move) {
+        sprintf(individual_scores, "%s%s", individual_scores, "Sprinkler");
+        new_move = false;
+      }
+      sprinkler();
+    } else if (choreo[step_num] == 6) {
+      if (new_move) {
+        sprintf(individual_scores, "%s%s", individual_scores, "Arm Cross");
+        new_move = false;
+      }
+      arm_cross();
+    } else if (choreo[step_num] == 7) {
+      if (new_move) {
+        sprintf(individual_scores, "%s%s", individual_scores, "Disco");
+        new_move = false;
+      }
+      disco();
     }
   }
 }
@@ -403,6 +427,7 @@ void reset_dance_states() {
 }
 
 void add_stars(int result) {
+  Serial.println("here!");
   if (result == 0) {
     sprintf(individual_scores, "%s: %s\n", individual_scores, "/");
   } else if (result == 1) {

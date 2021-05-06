@@ -68,7 +68,11 @@ void select_game(int button) {
         selected_game = 2;
       }
       break;
-    case 4: 
+    case 4:
+      if (button == 0) {
+        game_state = 5;
+      }
+    case 5: 
       home_screen = false;
       end_screen = true;
       load_game();
