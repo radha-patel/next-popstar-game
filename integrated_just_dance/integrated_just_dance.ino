@@ -59,12 +59,20 @@ const uint16_t ORANGE = 0xFDA0;
 const uint16_t WHITE = 0xFFFF;
 const uint16_t YELLOW = 0xFFE0;
 const uint16_t CYAN = 0x07FF;
+
+// HAND ROLL (4), DISCO (2), PUNCH (4), WAVE (4), SPRINKLER (4), ARM CROSS (2)
+//const int STEP_COUNT = 6;
+//float choreo[STEP_COUNT] = {2, 7, 1, 3, 5, 6};
+//float choreo_timing[STEP_COUNT] = {4, 4, 8, 8, 4, 4};
+//float choreo_correct[STEP_COUNT] = {4, 2, 4, 4, 4, 2};
+
+// BOUNCE (8), HAND ROLL (8), PUNCH (8), SPRINKLER (8)
 const int STEP_COUNT = 4;
-
-float choreo[STEP_COUNT] = {5, 6, 7, 1};
+float choreo[STEP_COUNT] = {4, 2, 1, 5};
 float choreo_timing[STEP_COUNT] = {8, 8, 8, 8};
-int step_num = 0;
+float choreo_correct[STEP_COUNT] = {8, 8, 8, 8};
 
+int step_num = 0;
 int song_state = 0;
 int song_index = 0;
 
@@ -301,7 +309,7 @@ void loop() {
 
   if (begin_game) {
     if (step_num < STEP_COUNT && millis() - song_timer > dance_time) {
-      int result = similarity_score(choreo_timing[step_num], move_iter);
+      int result = similarity_score(choreo_correct[step_num], move_iter);
       new_move = true;
       step_num += 1;
       dance_time += time_per_beat * choreo_timing[step_num];
