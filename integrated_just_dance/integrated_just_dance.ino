@@ -389,6 +389,7 @@ void loop() {
     post_score(just_dance_total);
     game_end = false;
     reset_dance_states();
+    new_move = true;
   }
 
   if (begin_game) {
@@ -431,42 +432,49 @@ void loop() {
     if (choreo[step_num] == 1) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Punch");
+        Serial.println(individual_scores);
         new_move = false;
       }
       punch();
     } else if (choreo[step_num] == 2) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Hand Roll");
+        Serial.println(individual_scores);
         new_move = false;
       }
       hand_roll();
     } else if (choreo[step_num] == 3) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Wave");
+        Serial.println(individual_scores);
         new_move = false;
       }
       wave();
     } else if (choreo[step_num] == 4) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Bounce");
+        Serial.println(individual_scores);
         new_move = false;
       }
       bounce();
     } else if (choreo[step_num] == 5) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Sprinkler");
+        Serial.println(individual_scores);
         new_move = false;
       }
       sprinkler();
     } else if (choreo[step_num] == 6) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Arm Cross");
+        Serial.println(individual_scores);
         new_move = false;
       }
       arm_cross();
     } else if (choreo[step_num] == 7) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Disco");
+        Serial.println(individual_scores);
         new_move = false;
       }
       disco();
