@@ -1,0 +1,9 @@
+All songs are 16th notes.
+
+duration of each 16th note:
+
+Stereo Hearts: 166.67
+
+Riptide: 150.0
+
+Shake it Off: 97.4026
