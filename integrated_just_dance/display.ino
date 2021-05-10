@@ -1,6 +1,6 @@
 void draw_title() {
   tft.drawString("Who Will Be The", 20, 25, 1);
-//  tft.setTextColor(YELLOW, TFT_BLACK);
+  tft.setTextColor(YELLOW, TFT_BLACK);
   tft.drawString("Next Popstar?", 22, 35, 2);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
 }
@@ -60,7 +60,6 @@ void select_game(int button) {
         game_state = 2;
         tft.drawRect(69, 81, 48, 58, BLACK);
         tft.drawRect(68, 80, 50, 60, ST7735_GREEN);
-        tft.drawRect(67, 79, 52, 62, BLACK);
         tft.drawRect(15, 81, 48, 58, WHITE);
         tft.drawRect(14, 80, 50, 60, WHITE);
         tft.drawRect(13, 79, 52, 62, WHITE);
