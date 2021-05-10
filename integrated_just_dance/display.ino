@@ -94,7 +94,7 @@ void select_game(int button) {
       home_screen = false;
       end_screen = true;
       load_game();
-      begin_game = true;
+      begin_dance = true;
       song_timer = millis();
       song_state = 1;
       step_num = 0;

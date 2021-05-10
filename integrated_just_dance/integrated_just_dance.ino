@@ -28,13 +28,14 @@ const float time_per_beat = (60 * 1000) / tempo;
 int training_trials = 1;
 const int beats = 4;
 uint32_t timer;
-bool begin_game = false;
+bool begin_dance = false;
 float dance_time = 0;
 bool init_screen = true;
 bool home_screen = true;
 bool end_screen = false;
 bool new_move = true;
 bool username_selected = false;
+bool song_selected = false;
 
 int punch_state = 0; // Move 1
 int hand_roll_state = 0; // Move 2
@@ -358,17 +359,7 @@ void loop() {
   read_accel();
 
   if (!username_selected) {
-    ug.update(-y, b2, response);
-    if (strcmp(response, old_response) != 0) {//only draw if changed!
-//      tft.fillScreen(TFT_BLACK);
-      tft.fillRect(15, 86, 98, 13, BLACK);
-      tft.setCursor(17, 89, 1);
-      tft.println(response);
-    }
-    memset(old_response, 0, sizeof(old_response));
-    strcat(old_response, response);
-    while (millis() - primary_timer < LOOP_PERIOD); //wait for primary timer to increment
-    primary_timer = millis();
+    get_username(b2);
   }
   
   if (username_selected && init_screen) {
@@ -383,7 +374,11 @@ void loop() {
   if (end_screen) {
     finish_game(bv);
   }
-  
+
+  if (begin_dance) {
+    play_just_dance();
+  }
+ 
   if (game_end) { // POST state
     Serial.println("you made it to the end!");
     post_score(just_dance_total);
@@ -391,9 +386,84 @@ void loop() {
     reset_dance_states();
     new_move = true;
   }
+}
 
-  if (begin_game) {
-    if (step_num < STEP_COUNT && millis() - song_timer > dance_time) {
+void read_accel() {
+  imu.readAccelData(imu.accelCount);
+  x = imu.accelCount[0] * imu.aRes * ZOOM;
+  y = imu.accelCount[1] * imu.aRes * ZOOM;
+  z = imu.accelCount[2] * imu.aRes * ZOOM;
+}
+
+void post_score(int score) {
+  Serial.println("the game ended!");
+  char thing[500];
+  sprintf(thing, "user=%s&justdance=%i&rhythm=0&karaoke=0", user, score);      
+  sprintf(request, "POST http://608dev-2.net/sandbox/sc/team64/scoreboard.py HTTP/1.1\r\n");
+  sprintf(request + strlen(request), "Host: %s\r\n", host);
+  strcat(request, "Content-Type: application/x-www-form-urlencoded\r\n");
+  sprintf(request + strlen(request), "Content-Length: %d\r\n\r\n", strlen(thing));
+  strcat(request, thing);
+  Serial.println(request);
+  do_http_request("608dev-2.net", request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
+}
+
+int similarity_score(int correct, int actual) {
+  if (actual > 0.9 * correct) {
+    return 5;
+  } else if (actual > 0.7 * correct) {
+    return 4;
+  } else if (actual > 0.5 * correct) {
+    return 3;
+  } else if (actual > 0.3 * correct) {
+    return 2;
+  } else if (actual > 0.1 * correct) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+void reset_dance_states() {
+  punch_state = 0;
+  hand_roll_state = 0;
+  wave_state = 0;
+  bounce_state = 0;
+  move_iter = 0;
+}
+
+void get_username(int b2) {
+  ug.update(-y, b2, response);
+  if (strcmp(response, old_response) != 0) {//only draw if changed!
+    tft.fillRect(15, 86, 98, 13, BLACK);
+    tft.setCursor(17, 89, 1);
+    tft.println(response);
+  }
+  memset(old_response, 0, sizeof(old_response));
+  strcat(old_response, response);
+  while (millis() - primary_timer < LOOP_PERIOD); //wait for primary timer to increment
+  primary_timer = millis();
+}
+
+void add_stars(int result) {
+  Serial.println("here!");
+  if (result == 0) {
+    sprintf(individual_scores, "%s: %s\n", individual_scores, "/");
+  } else if (result == 1) {
+    sprintf(individual_scores, "%s: %s\n", individual_scores, "*");
+  } else if (result == 2) {
+    sprintf(individual_scores, "%s: %s\n", individual_scores, "**");
+  } else if (result == 3) {
+    sprintf(individual_scores, "%s: %s\n", individual_scores, "***");
+  } else if (result == 4) {
+    sprintf(individual_scores, "%s: %s\n", individual_scores, "****");
+  } else if (result == 5) {
+    sprintf(individual_scores, "%s: %s\n", individual_scores, "*****");
+  }
+}
+
+void play_just_dance() {
+  if (step_num < STEP_COUNT && millis() - song_timer > dance_time) {
       int result = similarity_score(choreo_correct[step_num], move_iter);
       new_move = true;
       step_num += 1;
@@ -406,7 +476,7 @@ void loop() {
       game_end = true;
       song_state = 0;
       new_move = true;
-      begin_game = false;
+      begin_dance = false;
       step_num = 0;
       ledcWriteTone(AUDIO_PWM, 0);
       just_dance_end();
@@ -479,66 +549,4 @@ void loop() {
       }
       disco();
     }
-  }
-}
-
-void read_accel() {
-  imu.readAccelData(imu.accelCount);
-  x = imu.accelCount[0] * imu.aRes * ZOOM;
-  y = imu.accelCount[1] * imu.aRes * ZOOM;
-  z = imu.accelCount[2] * imu.aRes * ZOOM;
-}
-
-void post_score(int score) {
-  Serial.println("the game ended!");
-  char thing[500];
-  sprintf(thing, "user=%s&justdance=%i&rhythm=0&karaoke=0", user, score);      
-  sprintf(request, "POST http://608dev-2.net/sandbox/sc/team64/scoreboard.py HTTP/1.1\r\n");
-  sprintf(request + strlen(request), "Host: %s\r\n", host);
-  strcat(request, "Content-Type: application/x-www-form-urlencoded\r\n");
-  sprintf(request + strlen(request), "Content-Length: %d\r\n\r\n", strlen(thing));
-  strcat(request, thing);
-  Serial.println(request);
-  do_http_request("608dev-2.net", request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
-}
-
-int similarity_score(int correct, int actual) {
-  if (actual > 0.9 * correct) {
-    return 5;
-  } else if (actual > 0.7 * correct) {
-    return 4;
-  } else if (actual > 0.5 * correct) {
-    return 3;
-  } else if (actual > 0.3 * correct) {
-    return 2;
-  } else if (actual > 0.1 * correct) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-void reset_dance_states() {
-  punch_state = 0;
-  hand_roll_state = 0;
-  wave_state = 0;
-  bounce_state = 0;
-  move_iter = 0;
-}
-
-void add_stars(int result) {
-  Serial.println("here!");
-  if (result == 0) {
-    sprintf(individual_scores, "%s: %s\n", individual_scores, "/");
-  } else if (result == 1) {
-    sprintf(individual_scores, "%s: %s\n", individual_scores, "*");
-  } else if (result == 2) {
-    sprintf(individual_scores, "%s: %s\n", individual_scores, "**");
-  } else if (result == 3) {
-    sprintf(individual_scores, "%s: %s\n", individual_scores, "***");
-  } else if (result == 4) {
-    sprintf(individual_scores, "%s: %s\n", individual_scores, "****");
-  } else if (result == 5) {
-    sprintf(individual_scores, "%s: %s\n", individual_scores, "*****");
-  }
 }
