@@ -61,6 +61,8 @@ const uint16_t ORANGE = 0xFDA0;
 const uint16_t WHITE = 0xFFFF;
 const uint16_t YELLOW = 0xFFE0;
 const uint16_t CYAN = 0x07FF;
+const uint16_t LIGHT_GRAY = 0xBDF7;
+const uint16_t DARK_GRAY = 0x7BEF;
 
 // HAND ROLL (4), DISCO (2), PUNCH (4), WAVE (4), SPRINKLER (4), ARM CROSS (2)
 //const int STEP_COUNT = 6;
@@ -237,7 +239,7 @@ class UsernameGetter {
     UsernameGetter() {
       state = 0;
       memset(msg, 0, sizeof(msg));
-      strcat(msg, "Long Press to Start!");
+      strcat(msg, "Press & tilt!");
       char_index = 0;
       scrolling_timer = millis();
     }
@@ -284,6 +286,7 @@ class UsernameGetter {
         case 2:
           username_selected = true;
           state = 0;
+          tft.fillScreen(BLACK);
           Serial.println("FINISHED COLLECTING USERNAME");
           break;
       }
@@ -293,11 +296,6 @@ class UsernameGetter {
 UsernameGetter ug;
 
 void setup() {
-  tft.init();
-  tft.setRotation(2);
-  tft.setTextSize(1);
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextColor(TFT_GREEN, TFT_BLACK);
   Serial.begin(115200);
   WiFi.begin(network, password); //attempt to connect to wifi
   uint8_t count = 0; //count used for Wifi check times
@@ -351,20 +349,20 @@ void setup() {
   game_end = 0;
   just_dance_total = 0;
   song_index = 0;
+  draw_user_selection_screen();
 }
 
 void loop() {  
   int bv = button.update();
   int b2 = button2.update();
   read_accel();
-//  display_init();
 
   if (!username_selected) {
-//    collect_username();
     ug.update(-y, b2, response);
     if (strcmp(response, old_response) != 0) {//only draw if changed!
-      tft.fillScreen(TFT_BLACK);
-      tft.setCursor(0, 0, 1);
+//      tft.fillScreen(TFT_BLACK);
+      tft.fillRect(15, 86, 98, 13, BLACK);
+      tft.setCursor(17, 89, 1);
       tft.println(response);
     }
     memset(old_response, 0, sizeof(old_response));

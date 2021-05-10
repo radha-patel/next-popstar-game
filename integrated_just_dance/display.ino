@@ -1,6 +1,20 @@
-void draw_home_screen() {
+void draw_title() {
   tft.drawString("Who Will Be The", 20, 25, 1);
+//  tft.setTextColor(YELLOW, TFT_BLACK);
   tft.drawString("Next Popstar?", 22, 35, 2);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+}
+
+void draw_user_selection_screen() {
+  draw_title();
+  tft.drawString("Select a username", 15, 60, 1);
+  tft.drawString("to start.", 40, 70, 1);
+  tft.drawRect(14, 85, 100, 15, LIGHT_GRAY);
+  tft.drawRect(13, 84, 102, 17, LIGHT_GRAY);
+}
+
+void draw_home_screen() {
+  draw_title();
   tft.drawString("Play to find out!", 15, 60, 1);
   tft.drawRect(14, 80, 50, 60, ST7735_GREEN);
   tft.drawString("Just", 28, 100, 1);
@@ -116,21 +130,6 @@ void finish_game(int button) {
         end_screen = false;
         finish_state = 0;
       }
-      break;
-  }
-}
-
-void collect_username() {
-  tft.fillScreen(PURPLE);
-}
-
-void display_init() {
-  switch(screen_state) {
-    case 0:
-      collect_username();
-      screen_state = 1;
-      break;
-    case 1:
       break;
   }
 }
