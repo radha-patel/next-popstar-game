@@ -8,6 +8,11 @@ void draw_home_screen() {
   tft.drawRect(68, 80, 50, 60, ST7735_GREEN);
   tft.drawString("Rhythm", 76, 100, 1);
   tft.drawString("Game", 82, 110, 1);
+  char username[25];
+  sprintf(username, "Username: %s", user);
+  Serial.printf("Username... %s \n", username);
+  Serial.printf("User... %s \n", user);
+  tft.drawString(username, 14, 145, 1);
 }
 
 void load_game() {
@@ -111,6 +116,21 @@ void finish_game(int button) {
         end_screen = false;
         finish_state = 0;
       }
+      break;
+  }
+}
+
+void collect_username() {
+  tft.fillScreen(PURPLE);
+}
+
+void display_init() {
+  switch(screen_state) {
+    case 0:
+      collect_username();
+      screen_state = 1;
+      break;
+    case 1:
       break;
   }
 }
