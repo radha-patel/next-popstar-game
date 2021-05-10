@@ -11,20 +11,18 @@
 TFT_eSPI tft = TFT_eSPI();
 
 const int DELAY = 1000;
-const int SAMPLE_FREQ = 8000;                          // Hz, telephone sample rate
+const int SAMPLE_FREQ = 1000;                          // Hz, telephone sample rate
 const int SAMPLE_DURATION = 5;                        // duration of fixed sampling (seconds)
 const int NUM_SAMPLES = SAMPLE_FREQ * SAMPLE_DURATION;  // number of of samples
 const int ENC_LEN = (NUM_SAMPLES + 2 - ((NUM_SAMPLES + 2) % 3)) / 3 * 4;  // Encoded length of clip
 
 /* CONSTANTS */
 //Prefix to POST request:
-const char PREFIX[] = "{\"config\":{\"encoding\":\"MULAW\",\"sampleRateHertz\":8000,\"languageCode\": \"en-US\", \"speechContexts\":[{\"phrases\":[\"light\", \"delace\", \"aujourd'hui\"]}]}, \"audio\": {\"content\":\"";
-const char SUFFIX[] = "\"}}"; //suffix to POST request
 const int AUDIO_IN = A0; //pin where microphone is connected
 const char API_KEY[] = "AIzaSyCwyynsePu7xijUYTOgR7NdVqxH2FAG9DQ"; //don't change this
 
 
-const uint8_t PIN_1 = 19; //button 1
+const uint8_t PIN_1 = 3; //button 1
 const uint8_t PIN_2 = 0; //button 2
 
 
@@ -40,7 +38,7 @@ char speech_data[ENC_LEN + 200] = {0}; //global used for collecting speech data
 
 char network[] = "MIT";  //SSID for 6.08 Lab
 char password[] = ""; //Password for 6.08 Lab
-char request[6000];
+char request[9000];
 
 char host[] = "608dev-2.net";
 
@@ -58,8 +56,8 @@ char response[OUT_BUFFER_SIZE]; //char array buffer to hold HTTP request
 
 void post_audio(char * message) {
   Serial.println("Posting to Server:");
-  char thing[5000];
-  sprintf(thing, "test=%s", message);      
+  char thing[6000];
+  sprintf(thing, "audio=%s", message);      
   sprintf(request, "POST http://608dev-2.net/sandbox/sc/team64/karaoke_server.py HTTP/1.1\r\n");
   sprintf(request + strlen(request), "Host: %s\r\n", host);
   strcat(request, "Content-Type: application/x-www-form-urlencoded\r\n");
@@ -137,6 +135,7 @@ void loop() {
     record_audio();
     Serial.println("sending...");
     readFile(SD, "/test_sample.txt", message_buffer);
+    Serial.println(strlen(message_buffer));
     Serial.println("sending data");
     post_audio(message_buffer);
     }
@@ -146,12 +145,11 @@ void loop() {
 //function used to record audio at sample rate for a fixed nmber of samples
 void record_audio() {
   int sample_num = 0;    // counter for samples
-  int enc_index = strlen(PREFIX) - 1;  // index counter for encoded samples
+  int enc_index = 0;  // index counter for encoded samples
   float time_between_samples = 1000000 / SAMPLE_FREQ;
   int value = 0;
   char raw_samples[3];   // 8-bit raw sample data array
   memset(speech_data, 0, sizeof(speech_data));
-  sprintf(speech_data, "%s", PREFIX);
   char holder[5] = {0};
   Serial.println("starting");
   uint32_t text_index = enc_index;
@@ -173,7 +171,8 @@ void record_audio() {
     time_since_sample = micros();
   }
   Serial.println(millis() - start);
-  sprintf(speech_data + strlen(speech_data), "%s", SUFFIX);
+  int len = strlen(speech_data);
+  Serial.println(len);
   writeFile(SD, "/test_sample.txt", speech_data);
   Serial.println("out");
 }
