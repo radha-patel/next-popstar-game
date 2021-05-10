@@ -34,6 +34,7 @@ bool init_screen = true;
 bool home_screen = true;
 bool end_screen = false;
 bool new_move = true;
+bool username_selected = false;
 
 int punch_state = 0; // Move 1
 int hand_roll_state = 0; // Move 2
@@ -47,6 +48,7 @@ int move_iter = 0;
 int game_state = 0;
 int finish_state = 0;
 int selected_game = 0; // 1 is Just Dance, 2 is Rhythm Game
+int screen_state = 0;
 
 const uint16_t GREEN = 0x07e0;
 const uint16_t BLACK = 0x0000;
@@ -59,6 +61,8 @@ const uint16_t ORANGE = 0xFDA0;
 const uint16_t WHITE = 0xFFFF;
 const uint16_t YELLOW = 0xFFE0;
 const uint16_t CYAN = 0x07FF;
+const uint16_t LIGHT_GRAY = 0xBDF7;
+const uint16_t DARK_GRAY = 0x7BEF;
 
 // HAND ROLL (4), DISCO (2), PUNCH (4), WAVE (4), SPRINKLER (4), ARM CROSS (2)
 //const int STEP_COUNT = 6;
@@ -125,7 +129,7 @@ char password[] = ""; //Password for 6.08 Lab
 char host[] = "608dev-2.net";
 char request[2000];
 int game_end;
-char* user = "testuser";
+char user[10];
 int just_dance_total = 0;
 char individual_scores[500] = "";
 
@@ -134,6 +138,7 @@ const int RESPONSE_TIMEOUT = 6000; //ms to wait for response from host
 const uint16_t OUT_BUFFER_SIZE = 1000; //size of buffer to hold HTTP response
 char old_response[OUT_BUFFER_SIZE]; //char array buffer to hold HTTP request
 char response[OUT_BUFFER_SIZE]; //char array buffer to hold HTTP request
+const int LOOP_PERIOD = 40;
 
 class Button {
   public:
@@ -220,12 +225,77 @@ class Button {
 Button button(BUTTON1);
 Button button2(BUTTON2);
 
+class UsernameGetter {
+    char alphabet[50] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    char msg[400] = {0}; //contains previous query response
+    char query_string[50] = {0};
+    int char_index;
+    int state;
+    int query_index = 0;
+    uint32_t scrolling_timer;
+    const int scrolling_threshold = 150;
+    const float angle_threshold = 0.3 * ZOOM;
+  public:
+    UsernameGetter() {
+      state = 0;
+      memset(msg, 0, sizeof(msg));
+      strcat(msg, "Press & tilt!");
+      char_index = 0;
+      scrolling_timer = millis();
+    }
+    void update(float angle, int button, char* output) {
+      switch(state) {
+        case 0:
+          strcpy(output, msg);
+          if (button == 2){
+            state = 1;
+            char_index = 0;
+            scrolling_timer = millis();
+          }
+          break;
+        case 1:
+          if (button == 1) {
+            strncat(query_string, &alphabet[char_index], 1);
+            char_index = 0;
+            strcpy(output, query_string);
+            strncat(output, &alphabet[char_index], 1);
+          } else if (button == 2) {
+            state = 2;
+            strcpy(user, output);
+            memset(output, 0, sizeof(output));
+          } else if (millis() - scrolling_timer > scrolling_threshold) {
+            if (abs(angle) > angle_threshold) {
+              if (angle > 0) {
+                char_index ++;
+                char_index = char_index % strlen(alphabet);
+              } else {
+                char_index --;
+                if (char_index == -1) {
+                  char_index = strlen(alphabet) - 1;
+                }
+              }
+              scrolling_timer = millis();
+            }
+            strcpy(output, query_string);
+            strncat(output, &alphabet[char_index], 1);
+          } else {
+            strcpy(output, query_string);
+            strncat(output, &alphabet[char_index], 1);
+          }
+          break;
+        case 2:
+          username_selected = true;
+          state = 0;
+          tft.fillScreen(BLACK);
+          Serial.println("FINISHED COLLECTING USERNAME");
+          break;
+      }
+    }
+};
+
+UsernameGetter ug;
+
 void setup() {
-  tft.init();
-  tft.setRotation(2);
-  tft.setTextSize(1);
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextColor(TFT_GREEN, TFT_BLACK);
   Serial.begin(115200);
   WiFi.begin(network, password); //attempt to connect to wifi
   uint8_t count = 0; //count used for Wifi check times
@@ -279,20 +349,34 @@ void setup() {
   game_end = 0;
   just_dance_total = 0;
   song_index = 0;
+  draw_user_selection_screen();
 }
 
 void loop() {  
+  int bv = button.update();
+  int b2 = button2.update();
   read_accel();
 
-  if (init_screen) {
+  if (!username_selected) {
+    ug.update(-y, b2, response);
+    if (strcmp(response, old_response) != 0) {//only draw if changed!
+//      tft.fillScreen(TFT_BLACK);
+      tft.fillRect(15, 86, 98, 13, BLACK);
+      tft.setCursor(17, 89, 1);
+      tft.println(response);
+    }
+    memset(old_response, 0, sizeof(old_response));
+    strcat(old_response, response);
+    while (millis() - primary_timer < LOOP_PERIOD); //wait for primary timer to increment
+    primary_timer = millis();
+  }
+  
+  if (username_selected && init_screen) {
     draw_home_screen();
     init_screen = false;
   }
   
-  int bv = button.update();
-  int b2 = button2.update();
-  
-  if (home_screen) {
+  if (username_selected && home_screen) {
     select_game(bv); 
   }
 
