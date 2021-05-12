@@ -11,8 +11,8 @@
 TFT_eSPI tft = TFT_eSPI();
 
 const int DELAY = 1000;
-const int SAMPLE_FREQ = 1000;                          // Hz, telephone sample rate
-const int SAMPLE_DURATION = 5;                        // duration of fixed sampling (seconds)
+const int SAMPLE_FREQ = 2500;                          // Hz, telephone sample rate
+const int SAMPLE_DURATION = 2;                        // duration of fixed sampling (seconds)
 const int NUM_SAMPLES = SAMPLE_FREQ * SAMPLE_DURATION;  // number of of samples
 const int ENC_LEN = (NUM_SAMPLES + 2 - ((NUM_SAMPLES + 2) % 3)) / 3 * 4;  // Encoded length of clip
 
@@ -38,7 +38,7 @@ char speech_data[ENC_LEN + 200] = {0}; //global used for collecting speech data
 
 char network[] = "MIT";  //SSID for 6.08 Lab
 char password[] = ""; //Password for 6.08 Lab
-char request[9000];
+char request[10000];
 
 char host[] = "608dev-2.net";
 
@@ -53,17 +53,27 @@ const uint16_t OUT_BUFFER_SIZE = 1000; //size of buffer to hold HTTP response
 char old_response[OUT_BUFFER_SIZE]; //char array buffer to hold HTTP request
 char response[OUT_BUFFER_SIZE]; //char array buffer to hold HTTP request
 
+int file_count = 0;
+int record_state = 0;
+//int song_length = 109335; // stereo as example, 656 * 166.67
+int song_length = 8000; // test length
 
-void post_audio(char * message) {
-  Serial.println("Posting to Server:");
-  char thing[6000];
-  sprintf(thing, "audio=%s", message);      
-  sprintf(request, "POST http://608dev-2.net/sandbox/sc/team64/karaoke_server.py HTTP/1.1\r\n");
+void post_audio(char * message, int message_len) {
+  Serial.println("Posting to Server:");      
+  sprintf(request, "POST http://608dev-2.net/sandbox/sc/team64/karaoke_server_withdb.py HTTP/1.1\r\n");
   sprintf(request + strlen(request), "Host: %s\r\n", host);
   strcat(request, "Content-Type: application/x-www-form-urlencoded\r\n");
-  sprintf(request + strlen(request), "Content-Length: %d\r\n\r\n", strlen(thing));
-  strcat(request, thing);
-  Serial.println(request);
+  sprintf(request + strlen(request), "Content-Length: %d\r\n\r\nuser=test&audio=", message_len);
+  strcat(request, message);
+//  Serial.println(request);
+  do_http_request("608dev-2.net", request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
+}
+
+void get_fft(char * user) {
+  sprintf(request, "GET /sandbox/sc/team64/karaoke_server_withdb.py?user=%s HTTP/1.1\r\n", user);
+  strcat(request, "Host: 608dev-2.net\r\n");
+  strcat(request, "\r\n"); //new line from header to body
+
   do_http_request("608dev-2.net", request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
 }
 
@@ -130,20 +140,46 @@ WiFi.begin(network, password); //attempt to connect to wifi
 //main body of code
 void loop() {
   button_state = digitalRead(PIN_1);
-  if (!button_state && button_state != old_button_state) {
-    Serial.println("listening...");
-    record_audio();
-    Serial.println("sending...");
-    readFile(SD, "/test_sample.txt", message_buffer);
-    Serial.println(strlen(message_buffer));
-    Serial.println("sending data");
-    post_audio(message_buffer);
+  if (!button_state) record_state = 1;
+  if (record_state == 1) { // recording state
+    timer = millis();
+    file_count = 0;
+    // do the timed recording here
+    while (millis() - timer < song_length) {
+      record_audio(&file_count);
+      Serial.print("File index:");
+      Serial.println(file_count);
     }
+    listDir(SD, "/", 0);
+    record_state = 2; // switch to send state
+  } else if (record_state == 2) {
+    for (int i = 0; i < file_count; i++) {
+      // send each of the stored encoded files on the SD card to the server
+      char file_name[50] = "";
+      sprintf(file_name, "/audio%i.txt", i);
+      readFile(SD, file_name, message_buffer);
+      int message_len = strlen(message_buffer);
+      message_len = message_len + 16;
+      post_audio(message_buffer, message_len);
+      delay(50);
+    }
+    get_fft("test");
+    record_state = 0; // set back to idle state
+  }
+//  if (!button_state && button_state != old_button_state) {
+//    Serial.println("listening...");
+//    record_audio();
+//    Serial.println("sending...");
+//    readFile(SD, "/test_sample.txt", message_buffer);
+//    Serial.println(strlen(message_buffer));
+//    Serial.println("sending data");
+//    post_audio(message_buffer);
+//    }
   old_button_state = button_state;
 }
 
 //function used to record audio at sample rate for a fixed nmber of samples
-void record_audio() {
+void record_audio(int * index) {
   int sample_num = 0;    // counter for samples
   int enc_index = 0;  // index counter for encoded samples
   float time_between_samples = 1000000 / SAMPLE_FREQ;
@@ -156,8 +192,8 @@ void record_audio() {
   uint32_t start = millis();
   time_since_sample = micros();
   while (sample_num < NUM_SAMPLES) { //read in NUM_SAMPLES worth of audio data
-    button_state = digitalRead(PIN_1);
-    if (button_state) break;
+//    button_state = digitalRead(PIN_1);
+//    if (button_state) break;
     value = analogRead(AUDIO_IN);  //make measurement
     raw_samples[sample_num % 3] = mulaw_encode(value - 1551); //remove 1.25V offset (from 12 bit reading)
     sample_num++;
@@ -172,9 +208,12 @@ void record_audio() {
   }
   Serial.println(millis() - start);
   int len = strlen(speech_data);
+  char file_name[50] = "";
+  sprintf(file_name, "/audio%i.txt", *index);
   Serial.println(len);
-  writeFile(SD, "/test_sample.txt", speech_data);
+  writeFile(SD, file_name, speech_data);
   Serial.println("out");
+  *index = *index + 1;
 }
 
 

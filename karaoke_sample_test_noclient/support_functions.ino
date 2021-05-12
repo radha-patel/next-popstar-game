@@ -184,11 +184,11 @@ void readFile(fs::FS &fs, const char * path, char* message){
     Serial.print("Read from file: ");
     while(file.available()){
       char letter = file.read();
-      Serial.print(letter);
+//      Serial.print(letter);
       sprintf(message + offset, "%c", letter);
       offset++;
     }
-    Serial.println(message);
+//    Serial.println(message);
     file.close();
 }
 
