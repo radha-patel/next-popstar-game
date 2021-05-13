@@ -1,7 +1,7 @@
 void punch() {
   switch(punch_state) {
     case 0:
-      tft.fillRect(0, 0, 128 * move_iter / choreo_correct[step_num], 20, WHITE);
+      tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
       tft.fillRect(0, 20, 128, 140, GREEN);
       punch_state = 1;
       break;
@@ -24,7 +24,7 @@ void punch() {
 void hand_roll() {
   switch(hand_roll_state) {
     case 0:
-      tft.fillRect(0, 0, 128 * move_iter / choreo_correct[step_num], 20, WHITE);
+      tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
       tft.fillRect(0, 20, 128, 140, PURPLE);
       hand_roll_state = 1;
       break;
@@ -57,7 +57,7 @@ void hand_roll() {
 void wave() {
   switch(wave_state) {
     case 0:
-      tft.fillRect(0, 0, 128 * move_iter / choreo_correct[step_num], 20, WHITE);
+      tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
       tft.fillRect(0, 20, 128, 140, BLUE);
       wave_state = 1;
       break;
@@ -80,7 +80,7 @@ void wave() {
 void bounce() {
   switch(bounce_state) {
     case 0:
-      tft.fillRect(0, 0, 128 * move_iter / choreo_correct[step_num], 20, WHITE);
+      tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
       tft.fillRect(0, 20, 128, 140, MAGENTA);
       bounce_state = 1;
       break;
@@ -103,7 +103,7 @@ void bounce() {
 void sprinkler() {
   switch(sprinkler_state) {
     case 0:
-      tft.fillRect(0, 0, 128 * move_iter / choreo_correct[step_num], 20, WHITE);
+      tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
       tft.fillRect(0, 20, 128, 140, CYAN);
       sprinkler_state = 1;
       break;
@@ -129,7 +129,7 @@ void sprinkler() {
 void arm_cross() {
   switch(arm_cross_state) {
     case 0:
-      tft.fillRect(0, 0, 128 * move_iter / choreo_correct[step_num], 20, WHITE);
+      tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
       tft.fillRect(0, 20, 128, 140, YELLOW);
       arm_cross_state = 1;
       break;
@@ -155,7 +155,7 @@ void arm_cross() {
 void disco() {
   switch(disco_state) {
     case 0:
-      tft.fillRect(0, 0, 128 * move_iter / choreo_correct[step_num], 20, WHITE);
+      tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
       tft.fillRect(0, 20, 128, 140, MAROON);
       disco_state = 1;
       break;

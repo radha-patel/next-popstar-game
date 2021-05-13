@@ -28,14 +28,7 @@ const float time_per_beat = (60 * 1000) / tempo;
 int training_trials = 1;
 const int beats = 4;
 uint32_t timer;
-bool begin_dance = false;
 float dance_time = 0;
-bool init_screen = true;
-bool home_screen = true;
-bool end_screen = false;
-bool new_move = true;
-bool username_selected = false;
-bool song_selected = false;
 
 // Dance state variables 
 int punch_state = 0; // Move 1
@@ -52,6 +45,17 @@ int game_state = 0;
 int finish_state = 0;
 int screen_state = 0;
 int song_pick_state = 0;
+
+// Game booleans
+bool init_screen = true;
+bool home_screen = true;
+bool end_screen = false;
+bool new_move = true;
+bool username_selected = false;
+bool song_selected = false;
+bool begin_dance = false;
+bool begin_rhythm = false;
+bool game_loaded = false;
 
 // Dance/song selection variables
 int selected_game = 0; // 1 is Just Dance, 2 is Rhythm Game
@@ -72,18 +76,6 @@ const uint16_t CYAN = 0x07FF;
 const uint16_t LIGHT_GRAY = 0xBDF7;
 const uint16_t DARK_GRAY = 0x7BEF;
 
-// HAND ROLL (4), DISCO (2), PUNCH (4), WAVE (4), SPRINKLER (4), ARM CROSS (2)
-//const int STEP_COUNT = 6;
-//float choreo[STEP_COUNT] = {2, 7, 1, 3, 5, 6};
-//float choreo_timing[STEP_COUNT] = {4, 4, 8, 8, 4, 4};
-//float choreo_correct[STEP_COUNT] = {4, 2, 4, 4, 4, 2};
-
-// BOUNCE (8), HAND ROLL (8), PUNCH (8), SPRINKLER (8)
-const int STEP_COUNT = 4;
-float choreo[STEP_COUNT] = {4, 2, 1, 5};
-float choreo_timing[STEP_COUNT] = {8, 8, 8, 8};
-float choreo_correct[STEP_COUNT] = {8, 8, 8, 8};
-
 int step_num = 0;
 int song_state = 0;
 int song_index = 0;
@@ -101,8 +93,19 @@ struct Choreo {
   int counts[20]; // number of iterations of each move
 };
 
+// BOUNCE (8), HAND ROLL (8), PUNCH (8), SPRINKLER (8)
 Choreo stereo_basic = {
   4, {4, 2, 1, 5}, {8, 8, 8, 8}, {8, 8, 8, 8}
+};
+
+// HAND ROLL (4), DISCO (2), PUNCH (4), WAVE (4), SPRINKLER (4), ARM CROSS (2)
+Choreo stereo_advanced = {
+  6, {2, 7, 1, 3, 5, 6}, {4, 4, 8, 8, 4, 4}, {4, 2, 4, 4, 4, 2}
+};
+
+// PUNCH (8), HAND ROLL (8), WAVE (8), BOUNCE (16), SPRINKLER (8), ARM CROSS (12), DISCO (16)
+Choreo riptide_basic = {
+  7, {1, 2, 3, 4, 5, 6, 7}, {16, 16, 16, 16, 16, 32, 27}, {8, 8, 8, 16, 8, 12, 16}
 };
 
 uint32_t song_timer;
@@ -116,11 +119,40 @@ Riff stereo = {{0, 0, 0, 0, 880.0, 880.0, 880.0, 880.0, 830.61, 830.61, 739.99, 
     659.25, 659.25, 739.99, 659.25, 659.25, 587.33, 587.33, 554.37, 554.37, 493.88, 493.88, 554.37, 554.37, 554.37, 554.37, 440, 
     659.25, 739.99, 739.99, 659.25, 659.25, 659.25, 554.37, 554.37, 554.37, 493.88, 440, 440}, 128, 166.67};
 
-Riff riptide = {{466.16, 466.16, 523.25, 523.25, 554.37, 554.37, 622.25, 698.46, 698.46, 698.46, 932.33, 932.33, 830.61, 830.61, 739.99, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 466.16, 466.16, 523.25, 523.25, 554.37, 554.37, 622.25, 698.46, 698.46, 698.46, 932.33, 932.33, 830.61, 830.61, 739.99, 739.99, 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 698.46, 830.61, 830.61, 830.61, 830.61, 830.61, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0, 0, 0, 698.46, 622.25, 698.46, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 622.25, 554.37, 554.37, 554.37, 554.37, 554.37, 554.37, 554.37, 554.37, 0, 0, 0, 0, 0, 415.3, 415.3, 932.33, 932.33, 932.33, 932.33, 932.33, 932.33, 932.33, 932.33, 830.61, 830.61, 830.61, 830.61, 830.61, 830.61, 830.61, 830.61, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0, 0, 0, 415.3, 415.3, 932.33, 932.33, 932.33, 932.33, 932.33, 932.33, 932.33, 932.33, 830.61, 830.61, 830.61, 830.61, 830.61, 830.61, 830.61, 830.61, 932.33, 932.33, 932.33, 830.61, 830.61, 830.61, 932.33, 932.33, 932.33, 830.61, 830.61, 830.61, 0, 0, 0, 0, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 698.46, 698.46, 698.46, 830.61, 830.61, 698.46, 698.46, 622.25, 622.25, 622.25, 622.25, 554.37, 554.37, 554.37, 0, 0, 698.46, 698.46, 698.46, 830.61, 830.61, 698.46, 698.46, 622.25, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 698.46, 698.46, 698.46, 830.61, 830.61, 698.46, 698.46, 622.25, 622.25, 622.25, 622.25, 554.37, 554.37, 466.16, 554.37, 554.37, 554.37, 554.37, 0, 0, 0, 0, 554.37, 554.37, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 698.46, 698.46, 698.46, 830.61, 830.61, 698.46, 698.46, 622.25, 622.25, 622.25, 622.25, 554.37, 554.37, 554.37, 0, 0, 698.46, 698.46, 698.46, 830.61, 830.61, 698.46, 622.25, 622.25, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 698.46, 698.46, 698.46, 830.61, 830.61, 698.46, 622.25, 622.25, 554.37, 554.37, 554.37, 554.37, 554.37, 554.37, 554.37, 554.37, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 554.37, 554.37, 554.37, 698.46, 698.46, 622.25, 622.25, 622.25, 554.37, 554.37, 554.37, 698.46, 698.46, 622.25, 622.25, 622.25, 622.25, 622.25, 622.25, 622.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 554.37, 554.37, 554.37, 698.46, 698.46, 622.25, 622.25, 622.25, 554.37, 554.37, 554.37, 698.46, 698.46, 466.16, 466.16, 466.16, 466.16, 466.16, 466.16, 466.16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 554.37, 554.37, 554.37, 698.46, 698.46, 622.25, 622.25, 622.25, 554.37, 554.37, 554.37, 698.46, 698.46, 622.25, 622.25, 622.25, 622.25,
-622.25, 622.25, 622.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 554.37, 554.37, 554.37, 698.46, 698.46, 622.25, 622.25, 622.25, 554.37, 554.37, 554.37, 698.46, 698.46, 622.25, 622.25, 622.25, 622.25, 622.25, 622.25, 554.37, 554.37, 554.37, 466.16, 466.16, 466.16, 554.37, 554.37, 554.37, 554.37, 554.37, 554.37, 554.37, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 622.25, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0, 0, 0, 0, 0, 698.46, 698.46, 622.25, 622.25, 698.46,
-698.46, 622.25, 622.25, 698.46, 622.25, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 622.25, 622.25, 622.25, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0}, 556, 150.00};
+Riff riptide = {{466.16, 466.16, 523.25, 523.25, 554.37, 554.37, 622.25, 698.46, 698.46, 698.46, 932.33, 932.33, 830.61, 
+830.61, 739.99, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 466.16, 466.16, 523.25, 523.25, 
+554.37, 554.37, 622.25, 698.46, 698.46, 698.46, 932.33, 932.33, 830.61, 830.61, 739.99, 739.99, 698.46, 698.46, 622.25, 
+622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 698.46, 830.61, 830.61, 830.61, 830.61, 830.61, 698.46, 698.46, 
+698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 
+698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0, 0, 0, 698.46, 622.25, 698.46, 622.25, 622.25, 698.46, 
+698.46, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 622.25, 554.37, 554.37, 
+554.37, 554.37, 554.37, 554.37, 554.37, 554.37, 0, 0, 0, 0, 0, 415.3, 415.3, 932.33, 932.33, 932.33, 932.33, 932.33, 
+932.33, 932.33, 932.33, 830.61, 830.61, 830.61, 830.61, 830.61, 830.61, 830.61, 830.61, 698.46, 698.46, 698.46, 698.46, 
+698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0, 0, 0, 415.3, 415.3, 932.33, 932.33, 932.33, 932.33, 932.33, 932.33, 932.33, 
+932.33, 830.61, 830.61, 830.61, 830.61, 830.61, 830.61, 830.61, 830.61, 932.33, 932.33, 932.33, 830.61, 830.61, 830.61, 
+932.33, 932.33, 932.33, 830.61, 830.61, 830.61, 0, 0, 0, 0, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 698.46, 
+698.46, 698.46, 830.61, 830.61, 698.46, 698.46, 622.25, 622.25, 622.25, 622.25, 554.37, 554.37, 554.37, 0, 0, 698.46, 
+698.46, 698.46, 830.61, 830.61, 698.46, 698.46, 622.25, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 698.46, 
+698.46, 698.46, 830.61, 830.61, 698.46, 698.46, 622.25, 622.25, 622.25, 622.25, 554.37, 554.37, 466.16, 554.37, 554.37, 
+554.37, 554.37, 0, 0, 0, 0, 554.37, 554.37, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 698.46, 698.46, 698.46, 
+830.61, 830.61, 698.46, 698.46, 622.25, 622.25, 622.25, 622.25, 554.37, 554.37, 554.37, 0, 0, 698.46, 698.46, 698.46, 
+830.61, 830.61, 698.46, 622.25, 622.25, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 698.46, 698.46, 698.46, 
+830.61, 830.61, 698.46, 622.25, 622.25, 554.37, 554.37, 554.37, 554.37, 554.37, 554.37, 554.37, 554.37, 0, 0, 0, 0, 0, 
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 554.37, 554.37, 
+554.37, 698.46, 698.46, 622.25, 622.25, 622.25, 554.37, 554.37, 554.37, 698.46, 698.46, 622.25, 622.25, 622.25, 622.25, 
+622.25, 622.25, 622.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 554.37, 554.37, 554.37, 698.46, 698.46, 622.25, 
+622.25, 622.25, 554.37, 554.37, 554.37, 698.46, 698.46, 466.16, 466.16, 466.16, 466.16, 466.16, 466.16, 466.16, 0, 0, 0, 
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 554.37, 554.37, 554.37, 698.46, 698.46, 622.25, 622.25, 622.25, 554.37, 554.37, 
+554.37, 698.46, 698.46, 622.25, 622.25, 622.25, 622.25, 622.25, 622.25, 622.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+0, 0, 0, 554.37, 554.37, 554.37, 698.46, 698.46, 622.25, 622.25, 622.25, 554.37, 554.37, 554.37, 698.46, 698.46, 622.25, 
+622.25, 622.25, 622.25, 622.25, 622.25, 554.37, 554.37, 554.37, 466.16, 466.16, 466.16, 554.37, 554.37, 554.37, 554.37, 
+554.37, 554.37, 554.37, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 622.25, 622.25, 622.25, 
+698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0, 0, 0, 0, 0, 
+698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 622.25, 622.25, 622.25, 698.46, 698.46, 622.25, 
+622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 622.25, 622.25, 622.25, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0}, 556, 150.00};
 
 Riff song_to_play = stereo;
+Choreo dance_to_play = stereo_basic;
 
 const uint32_t READING_PERIOD = 150; //milliseconds
 double MULT = 1.059463094359; //12th root of 2 (precalculated) for note generation
@@ -377,20 +409,29 @@ void loop() {
   }
   
   if (username_selected && init_screen) {
+    Serial.println("clause 1");
     draw_home_screen();
     init_screen = false;
   }
   
   if (username_selected && home_screen) {
+    Serial.println("clause 2");
     select_game(bv); 
   }
 
   if (end_screen) {
+    Serial.println("clause 3");
     finish_game(bv);
   }
 
-  if (begin_dance) {
+  if (begin_dance && selected_game == 1) {
+    Serial.println("clause 4");
     play_just_dance();
+  }
+
+  if (begin_rhythm && selected_game == 2) {
+    Serial.println("clause 5");
+    play_rhythm_game();
   }
  
   if (game_end) { // POST state
@@ -477,16 +518,16 @@ void add_stars(int result) {
 }
 
 void play_just_dance() {
-  if (step_num < stereo_basic.steps && millis() - song_timer > dance_time) {
-      int result = similarity_score(stereo_basic.counts[step_num], move_iter);
+  if (step_num < dance_to_play.steps && millis() - song_timer > dance_time) {
+      int result = similarity_score(dance_to_play.counts[step_num], move_iter);
       new_move = true;
       step_num += 1;
-      dance_time += time_per_beat * stereo_basic.timing[step_num];
+      dance_time += time_per_beat * dance_to_play.timing[step_num];
       add_stars(result);
       just_dance_total += result; // add to running total score
       move_iter = 0;
       tft.fillRect(0, 0, 128, 20, BLACK);
-    } else if (step_num == stereo_basic.steps) { // reset all values, enter game end state
+    } else if (step_num == dance_to_play.steps) { // reset all values, enter game end state
       game_end = true;
       song_state = 0;
       new_move = true;
@@ -513,49 +554,49 @@ void play_just_dance() {
         } else song_index++; // otherwise increment index 
       }
   
-    if (stereo_basic.moves[step_num] == 1) {
+    if (dance_to_play.moves[step_num] == 1) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Punch");
         Serial.println(individual_scores);
         new_move = false;
       }
       punch();
-    } else if (stereo_basic.moves[step_num] == 2) {
+    } else if (dance_to_play.moves[step_num] == 2) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Hand Roll");
         Serial.println(individual_scores);
         new_move = false;
       }
       hand_roll();
-    } else if (stereo_basic.moves[step_num] == 3) {
+    } else if (dance_to_play.moves[step_num] == 3) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Wave");
         Serial.println(individual_scores);
         new_move = false;
       }
       wave();
-    } else if (stereo_basic.moves[step_num] == 4) {
+    } else if (dance_to_play.moves[step_num] == 4) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Bounce");
         Serial.println(individual_scores);
         new_move = false;
       }
       bounce();
-    } else if (stereo_basic.moves[step_num] == 5) {
+    } else if (dance_to_play.moves[step_num] == 5) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Sprinkler");
         Serial.println(individual_scores);
         new_move = false;
       }
       sprinkler();
-    } else if (stereo_basic.moves[step_num] == 6) {
+    } else if (dance_to_play.moves[step_num] == 6) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Arm Cross");
         Serial.println(individual_scores);
         new_move = false;
       }
       arm_cross();
-    } else if (stereo_basic.moves[step_num] == 7) {
+    } else if (dance_to_play.moves[step_num] == 7) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Disco");
         Serial.println(individual_scores);
@@ -563,4 +604,16 @@ void play_just_dance() {
       }
       disco();
     }
+}
+
+void play_rhythm_game() {
+  tft.fillScreen(BLACK);
+  tft.drawString("Insert rhythm game", 10, 60, 1);
+  delay(3000);
+  home_screen = true;
+  begin_rhythm = false;
+  begin_dance = false;
+  end_screen = false;
+  tft.fillScreen(BLACK);
+  draw_home_screen();
 }
