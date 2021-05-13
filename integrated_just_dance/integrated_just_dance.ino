@@ -37,6 +37,7 @@ bool new_move = true;
 bool username_selected = false;
 bool song_selected = false;
 
+// Dance state variables 
 int punch_state = 0; // Move 1
 int hand_roll_state = 0; // Move 2
 int wave_state = 0; // Move 3
@@ -46,10 +47,16 @@ int arm_cross_state = 0; // Move 6
 int disco_state = 0; // Move 7
 int move_iter = 0;
 
+// Game state variables
 int game_state = 0;
 int finish_state = 0;
-int selected_game = 0; // 1 is Just Dance, 2 is Rhythm Game
 int screen_state = 0;
+int song_pick_state = 0;
+
+// Dance/song selection variables
+int selected_game = 0; // 1 is Just Dance, 2 is Rhythm Game
+int selected_song = 0; // 1 is Stereo Hearts, 2 is Riptide 
+const char *song_names[2] = {"Stereo Hearts", "Riptide"}; 
 
 const uint16_t GREEN = 0x07e0;
 const uint16_t BLACK = 0x0000;
@@ -85,6 +92,17 @@ struct Riff {
   double notes[768]; //the notes (array of doubles containing frequencies in Hz. I used https://pages.mtu.edu/~suits/notefreqs.html
   int length; //number of notes (essentially length of array.
   float note_period; //the timing of each note in milliseconds (take bpm, scale appropriately for note (sixteenth note would be 4 since four per quarter note) then
+};
+
+struct Choreo {
+  int steps; // number of steps in choreo
+  int moves[20]; // sequence of dance moves
+  int timing[20]; // number of beats per move 
+  int counts[20]; // number of iterations of each move
+};
+
+Choreo stereo_basic = {
+  4, {4, 2, 1, 5}, {8, 8, 8, 8}, {8, 8, 8, 8}
 };
 
 uint32_t song_timer;
@@ -182,7 +200,6 @@ class Button {
         state = 2;
         state_2_start_time = millis();
       }
-      // CODE HERE
     } else if (state==2) {
       if (button_pressed and millis() - state_2_start_time >= long_press_duration) {
         state = 3;
@@ -190,13 +207,11 @@ class Button {
         state = 4;
         button_change_time = millis();
       }
-      // CODE HERE
     } else if (state==3) {
       if (!button_pressed) {
         state = 4;
         button_change_time = millis();
       }
-      // CODE HERE
     } else if (state==4) {
       if (!button_pressed and millis()-button_change_time >= debounce_duration) {
         state = 0;
@@ -217,7 +232,6 @@ class Button {
         button_change_time = millis();
         state = 3;
       }
-      // CODE HERE
     }
     return flag;
   }
@@ -463,16 +477,16 @@ void add_stars(int result) {
 }
 
 void play_just_dance() {
-  if (step_num < STEP_COUNT && millis() - song_timer > dance_time) {
-      int result = similarity_score(choreo_correct[step_num], move_iter);
+  if (step_num < stereo_basic.steps && millis() - song_timer > dance_time) {
+      int result = similarity_score(stereo_basic.counts[step_num], move_iter);
       new_move = true;
       step_num += 1;
-      dance_time += time_per_beat * choreo_timing[step_num];
+      dance_time += time_per_beat * stereo_basic.timing[step_num];
       add_stars(result);
       just_dance_total += result; // add to running total score
       move_iter = 0;
       tft.fillRect(0, 0, 128, 20, BLACK);
-    } else if (step_num == STEP_COUNT) { // reset all values, enter game end state
+    } else if (step_num == stereo_basic.steps) { // reset all values, enter game end state
       game_end = true;
       song_state = 0;
       new_move = true;
@@ -499,49 +513,49 @@ void play_just_dance() {
         } else song_index++; // otherwise increment index 
       }
   
-    if (choreo[step_num] == 1) {
+    if (stereo_basic.moves[step_num] == 1) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Punch");
         Serial.println(individual_scores);
         new_move = false;
       }
       punch();
-    } else if (choreo[step_num] == 2) {
+    } else if (stereo_basic.moves[step_num] == 2) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Hand Roll");
         Serial.println(individual_scores);
         new_move = false;
       }
       hand_roll();
-    } else if (choreo[step_num] == 3) {
+    } else if (stereo_basic.moves[step_num] == 3) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Wave");
         Serial.println(individual_scores);
         new_move = false;
       }
       wave();
-    } else if (choreo[step_num] == 4) {
+    } else if (stereo_basic.moves[step_num] == 4) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Bounce");
         Serial.println(individual_scores);
         new_move = false;
       }
       bounce();
-    } else if (choreo[step_num] == 5) {
+    } else if (stereo_basic.moves[step_num] == 5) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Sprinkler");
         Serial.println(individual_scores);
         new_move = false;
       }
       sprinkler();
-    } else if (choreo[step_num] == 6) {
+    } else if (stereo_basic.moves[step_num] == 6) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Arm Cross");
         Serial.println(individual_scores);
         new_move = false;
       }
       arm_cross();
-    } else if (choreo[step_num] == 7) {
+    } else if (stereo_basic.moves[step_num] == 7) {
       if (new_move) {
         sprintf(individual_scores, "%s%s", individual_scores, "Disco");
         Serial.println(individual_scores);

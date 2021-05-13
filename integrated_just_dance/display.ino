@@ -60,6 +60,7 @@ void select_game(int button) {
         game_state = 2;
         tft.drawRect(69, 81, 48, 58, BLACK);
         tft.drawRect(68, 80, 50, 60, ST7735_GREEN);
+        tft.drawRect(67, 79, 52, 62, BLACK);
         tft.drawRect(15, 81, 48, 58, WHITE);
         tft.drawRect(14, 80, 50, 60, WHITE);
         tft.drawRect(13, 79, 52, 62, WHITE);
@@ -89,17 +90,58 @@ void select_game(int button) {
     case 4:
       if (button == 0) {
         game_state = 5;
+        tft.fillScreen(BLACK);
+        tft.drawString("Select a song!", 25, 52, 1);
       }
     case 5: 
-      home_screen = false;
-      end_screen = true;
-      load_game();
-      begin_dance = true;
-      song_timer = millis();
-      song_state = 1;
-      step_num = 0;
-      dance_time = time_per_beat * choreo_timing[step_num];
-      game_state = 0;
+      select_song(button);
+      if (button == 2) {
+        game_state = 6;
+      }
+      break;
+    case 6:
+      if (button == 0) {
+        Serial.println("in case 6");
+        home_screen = false;
+        end_screen = true;
+        load_game();
+        begin_dance = true;
+        song_timer = millis();
+        song_state = 1;
+        step_num = 0;
+        dance_time = time_per_beat * choreo_timing[step_num];
+        game_state = 0;
+      }
+      break;
+  }
+}
+
+void select_song(int button) {
+  switch(song_pick_state) {
+    case 0:
+      if (button == 1) {
+        song_pick_state = 1;
+      }
+      break;
+    case 1:
+      if (button == 0) {
+        song_pick_state = 0;
+        tft.fillRect(0, 66, 128, 10, BLACK);
+        char output[20];
+        sprintf(output, "** %s **", song_names[selected_song]);
+
+        tft.setTextColor(YELLOW, TFT_BLACK);
+        if (selected_song == 0) { // Stereo Hearts
+          song_to_play = stereo;
+          tft.drawString(output, 8, 66, 1);
+        } else if (selected_song == 1) { // Riptide
+          song_to_play = riptide;
+          tft.drawString(output, 24, 66, 1);
+        }
+        tft.setTextColor(TFT_WHITE, TFT_BLACK);
+        selected_song += 1;
+        selected_song = selected_song % 2;
+      }
       break;
   }
 }
