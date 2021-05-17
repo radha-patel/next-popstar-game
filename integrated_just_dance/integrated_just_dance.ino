@@ -14,8 +14,8 @@ float older_x, older_y, older_z;
 float avg_x, avg_y, avg_z;
 const float ZOOM = 9.81; // to convert units of accelerometer reading from g to m/s^2
 
-const uint8_t BUTTON1 = 5;
-const uint8_t BUTTON2 = 19;
+const uint8_t BUTTON1 = 0;
+const uint8_t BUTTON2 = 33;
 int db_state1 = 1;
 int db_count1 = 0;
 int db_state2 = 1;
