@@ -7,3 +7,5 @@ Stereo Hearts: 166.67
 Riptide: 150.0
 
 Shake it Off: 97.4026
+
+Havana: 142.857

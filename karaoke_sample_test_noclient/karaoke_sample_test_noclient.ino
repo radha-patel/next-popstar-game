@@ -48,7 +48,7 @@ uint32_t timer;
 char message_buffer[9000] = "";
 
 //Some constants and some resources:
-const int RESPONSE_TIMEOUT = 6000; //ms to wait for response from host
+const int RESPONSE_TIMEOUT = 20000; //ms to wait for response from host
 const uint16_t OUT_BUFFER_SIZE = 1000; //size of buffer to hold HTTP response
 char old_response[OUT_BUFFER_SIZE]; //char array buffer to hold HTTP request
 char response[OUT_BUFFER_SIZE]; //char array buffer to hold HTTP request
@@ -56,7 +56,8 @@ char response[OUT_BUFFER_SIZE]; //char array buffer to hold HTTP request
 int file_count = 0;
 int record_state = 0;
 //int song_length = 109335; // stereo as example, 656 * 166.67
-int song_length = 8000; // test length
+int song_length = 10667; // test length (about 4 measures of stereo)
+//int song_length = 21334; // 8 measures is 21334
 
 void post_audio(char * message, int message_len) {
   Serial.println("Posting to Server:");      
@@ -70,7 +71,7 @@ void post_audio(char * message, int message_len) {
 }
 
 void get_fft(char * user) {
-  sprintf(request, "GET /sandbox/sc/team64/karaoke_server_withdb.py?user=%s HTTP/1.1\r\n", user);
+  sprintf(request, "GET /sandbox/sc/team64/karaoke_server_withdb.py?song=stereo&user=%s HTTP/1.1\r\n", user);
   strcat(request, "Host: 608dev-2.net\r\n");
   strcat(request, "\r\n"); //new line from header to body
 
