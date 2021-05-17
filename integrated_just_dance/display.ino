@@ -78,19 +78,14 @@ void select_game(int button) {
       Serial.println("case 1");
       if (button == 0) {
         game_state = 2;
-        tft.drawRect(box2_x + 1, box2_y + 1, box2_width - 2, box2_height - 2, BLACK);
-        tft.drawRect(box2_x, box2_y, box2_width, box2_height, ST7735_GREEN);
-        tft.drawRect(box2_x - 1, box2_y - 1, box2_width + 2, box2_height + 2, BLACK);
-        tft.drawRect(box1_x + 1, box1_y + 1, box1_width - 2, box2_height - 2, WHITE);
-        tft.drawRect(box1_x, box1_y, box1_width, box1_height, WHITE);
-        tft.drawRect(box1_x - 1, box1_y - 1, box1_width + 2, box1_height + 2, WHITE);
+        draw_erase_box(box3_x, box3_y, box3_width, box3_height, box1_x, box1_y, box1_width, box1_height);
         selected_game = 1;
       }
       break;
     case 2:
       Serial.println("case 2");
       if (button == 2) {
-        game_state = 5;
+        game_state = 7;
       }
       if (button == 1) {
         game_state = 3;
@@ -100,47 +95,60 @@ void select_game(int button) {
       Serial.println("case 3");
       if (button == 0) {
         game_state = 4;
-        tft.drawRect(box1_x + 1, box1_y + 1, box1_width - 2, box2_height - 2, BLACK);
-        tft.drawRect(box1_x, box1_y, box1_width, box2_height, ST7735_GREEN);
-        tft.drawRect(box1_x - 1, box1_y - 1, box1_width + 2, box2_height + 2, BLACK);
-        tft.drawRect(box2_x + 1, box2_y + 1, box2_width - 2, box2_height - 2, WHITE);
-        tft.drawRect(box2_x, box2_y, box2_width, box2_height, WHITE);
-        tft.drawRect(box2_x - 1, box2_y -1, box2_width + 2, box2_height + 2, WHITE);
+        draw_erase_box(box1_x, box1_y, box1_width, box1_height, box2_x, box2_y, box2_width, box2_height);
         selected_game = 2;
       }
       break;
     case 4:
       Serial.println("case 4");
       if (button == 2) {
-        game_state = 5;
+        game_state = 7;
       }
       if (button == 1) {
-        game_state = 1;
+        game_state = 5;
       }
       break;
     case 5:
       Serial.println("case 5");
       if (button == 0) {
         game_state = 6;
+        draw_erase_box(box2_x, box2_y, box2_width, box2_height, box3_x, box3_y, box3_width, box3_height);
+        selected_game = 3;
+      }
+      break;
+    case 6:
+       Serial.println("case 6");
+       if (button == 2) {
+        game_state = 7;
+       } 
+       if (button == 1) {
+        game_state = 1;
+       }
+       break;
+    case 7:
+      Serial.println("case 7");
+      if (button == 0) {
+        game_state = 8;
         tft.fillScreen(BLACK);
         tft.drawString("Select a song!", 25, 52, 1);
       }
       break;
-    case 6: 
-      Serial.println("case 6");
+    case 8: 
+      Serial.println("case 8");
       select_song(button);
       if (button == 2) {
-        game_state = 7;
+        game_state = 9;
       }
       break;
-    case 7:
-      Serial.println("case 7");
+    case 9:
+      Serial.println("case 9");
       if (button == 0) {
         Serial.println("in case 6");
         home_screen = false;
         load_game();
         begin_dance = true;
         begin_rhythm = true;
+        begin_karaoke = true;
         song_timer = millis();
         song_state = 1;
         step_num = 0;
@@ -149,6 +157,16 @@ void select_game(int button) {
       }
       break;
   }
+}
+
+// Erase box b1, draw box b2
+void draw_erase_box(int b1x, int b1y, int b1w, int b1h, int b2x, int b2y, int b2w, int b2h) {
+  tft.drawRect(b1x + 1, b1y + 1, b1w - 2, b1h - 2, BLACK);
+  tft.drawRect(b1x, b1y, b1w, b1h, ST7735_GREEN);
+  tft.drawRect(b1x - 1, b1y - 1, b1w + 2, b1h + 2, BLACK);
+  tft.drawRect(b2x + 1, b2y + 1, b2w - 2, b2h - 2, WHITE);
+  tft.drawRect(b2x, b2y, b2w, b2h, WHITE);
+  tft.drawRect(b2x - 1, b2y - 1, b2w + 2, b2h + 2, WHITE);
 }
 
 void select_song(int button) {

@@ -65,6 +65,7 @@ bool username_selected = false;
 bool song_selected = false;
 bool begin_dance = false;
 bool begin_rhythm = false;
+bool begin_karaoke = false;
 bool game_loaded = false;
 
 // Dance/song selection variables
@@ -529,6 +530,11 @@ void loop() {
     Serial.println("clause 5");
     play_rhythm_game();
   }
+
+  if (begin_karaoke && selected_game == 3) {
+    Serial.println("clause 5");
+    play_karaoke_game();
+  }
  
   if (game_end) { // POST state
     Serial.println("you made it to the end!");
@@ -709,6 +715,20 @@ void play_rhythm_game() {
   home_screen = true;
   begin_rhythm = false;
   begin_dance = false;
+  begin_karaoke = false;
+  end_screen = false;
+  tft.fillScreen(BLACK);
+  draw_home_screen();
+}
+
+void play_karaoke_game() {
+  tft.fillScreen(BLACK);
+  tft.drawString("Insert karaoke game", 10, 60, 1);
+  delay(3000);
+  home_screen = true;
+  begin_rhythm = false;
+  begin_dance = false;
+  begin_karaoke = false;
   end_screen = false;
   tft.fillScreen(BLACK);
   draw_home_screen();
