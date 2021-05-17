@@ -9,6 +9,7 @@ TFT_eSPI tft = TFT_eSPI();
 const int SCREEN_HEIGHT = 160;
 const int SCREEN_WIDTH = 128;
 
+// Accelerometer variables
 MPU6050 imu;
 uint32_t primary_timer = 0;
 float x, y, z;
@@ -17,6 +18,7 @@ float older_x, older_y, older_z;
 float avg_x, avg_y, avg_z;
 const float ZOOM = 9.81; // to convert units of accelerometer reading from g to m/s^2
 
+// Button variables
 const uint8_t BUTTON1 = 0;
 const uint8_t BUTTON2 = 33;
 const uint8_t BUTTON3 = 32;
@@ -28,11 +30,12 @@ int db_count1 = 0;
 int db_state2 = 1;
 int db_count2 = 0;
 const uint8_t DB_COUNT_THRESHOLD = 100;
+
+// Tempo variables
 int tempo = 90;
 const int readings_per_beat = 20;
 const float delay_length = (60 * 1000) / (readings_per_beat * tempo);
 const float time_per_beat = (60 * 1000) / tempo;
-int training_trials = 1;
 const int beats = 4;
 uint32_t timer;
 float dance_time = 0;
@@ -69,6 +72,7 @@ int selected_game = 0; // 1 is Just Dance, 2 is Rhythm Game
 int selected_song = 0; // 1 is Stereo Hearts, 2 is Riptide 
 const char *song_names[2] = {"Stereo Hearts", "Riptide"}; 
 
+// LCD colors
 const uint16_t GREEN = 0x07e0;
 const uint16_t BLACK = 0x0000;
 const uint16_t MAROON = 0x7800;
@@ -83,6 +87,7 @@ const uint16_t CYAN = 0x07FF;
 const uint16_t LIGHT_GRAY = 0xBDF7;
 const uint16_t DARK_GRAY = 0x7BEF;
 
+// Song playing location
 int step_num = 0;
 int song_state = 0;
 int song_index = 0;
@@ -92,30 +97,6 @@ struct Riff {
   int length; //number of notes (essentially length of array.
   float note_period; //the timing of each note in milliseconds (take bpm, scale appropriately for note (sixteenth note would be 4 since four per quarter note) then
 };
-
-struct Choreo {
-  int steps; // number of steps in choreo
-  int moves[20]; // sequence of dance moves
-  int timing[20]; // number of beats per move 
-  int counts[20]; // number of iterations of each move
-};
-
-// BOUNCE (8), HAND ROLL (8), PUNCH (8), SPRINKLER (8)
-Choreo stereo_basic = {
-  4, {4, 2, 1, 5}, {8, 8, 8, 8}, {8, 8, 8, 8}
-};
-
-// HAND ROLL (4), DISCO (2), PUNCH (4), WAVE (4), SPRINKLER (4), ARM CROSS (2)
-Choreo stereo_advanced = {
-  6, {2, 7, 1, 3, 5, 6}, {4, 4, 8, 8, 4, 4}, {4, 2, 4, 4, 4, 2}
-};
-
-// PUNCH (8), HAND ROLL (8), WAVE (8), BOUNCE (16), SPRINKLER (8), ARM CROSS (12), DISCO (16)
-Choreo riptide_basic = {
-  7, {1, 2, 3, 4, 5, 6, 7}, {16, 16, 16, 16, 16, 32, 27}, {8, 8, 8, 16, 8, 12, 16}
-};
-
-uint32_t song_timer;
 
 Riff stereo = {{0, 0, 0, 0, 880.0, 880.0, 880.0, 880.0, 830.61, 830.61, 739.99, 659.25, 659.25, 587.33, 587.33, 554.37, 
     554.37, 554.37, 554.37, 440, 659.25, 659.25, 739.99, 659.25, 659.25, 587.33, 587.33, 554.37, 554.37, 493.88, 493.88, 
@@ -157,6 +138,31 @@ Riff riptide = {{466.16, 466.16, 523.25, 523.25, 554.37, 554.37, 622.25, 698.46,
 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0, 0, 0, 0, 0, 
 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 622.25, 622.25, 622.25, 698.46, 698.46, 622.25, 
 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 622.25, 622.25, 622.25, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0}, 556, 150.00};
+
+
+struct Choreo {
+  int steps; // number of steps in choreo
+  int moves[20]; // sequence of dance moves
+  int timing[20]; // number of beats per move 
+  int counts[20]; // number of iterations of each move
+};
+
+// BOUNCE (8), HAND ROLL (8), PUNCH (8), SPRINKLER (8)
+Choreo stereo_basic = {
+  4, {4, 2, 1, 5}, {8, 8, 8, 8}, {8, 8, 8, 8}
+};
+
+// HAND ROLL (4), DISCO (2), PUNCH (4), WAVE (4), SPRINKLER (4), ARM CROSS (2)
+Choreo stereo_advanced = {
+  6, {2, 7, 1, 3, 5, 6}, {4, 4, 8, 8, 4, 4}, {4, 2, 4, 4, 4, 2}
+};
+
+// PUNCH (8), HAND ROLL (8), WAVE (8), BOUNCE (16), SPRINKLER (8), ARM CROSS (12), DISCO (16)
+Choreo riptide_basic = {
+  7, {1, 2, 3, 4, 5, 6, 7}, {16, 16, 16, 16, 16, 32, 27}, {8, 8, 8, 16, 8, 12, 16}
+};
+
+uint32_t song_timer;
 
 Riff song_to_play = stereo;
 Choreo dance_to_play = stereo_basic;

@@ -1,3 +1,13 @@
+// Boxes for game selection on home screen
+int box1_x = 14;
+int box1_y = 80;
+int box1_width = 50;
+int box1_height = 60;
+int box2_x = 68;
+int box2_y = 80;
+int box2_width = 50;
+int box2_height = 60;
+
 void draw_title() {
   tft.drawString("Who Will Be The", 20, 25, 1);
   tft.setTextColor(YELLOW, TFT_BLACK);
@@ -62,12 +72,12 @@ void select_game(int button) {
       Serial.println("case 1");
       if (button == 0) {
         game_state = 2;
-        tft.drawRect(69, 81, 48, 58, BLACK);
-        tft.drawRect(68, 80, 50, 60, ST7735_GREEN);
-        tft.drawRect(67, 79, 52, 62, BLACK);
-        tft.drawRect(15, 81, 48, 58, WHITE);
-        tft.drawRect(14, 80, 50, 60, WHITE);
-        tft.drawRect(13, 79, 52, 62, WHITE);
+        tft.drawRect(box2_x + 1, box2_y + 1, box2_width - 2, box2_height - 2, BLACK);
+        tft.drawRect(box2_x, box2_y, box2_width, box2_height, ST7735_GREEN);
+        tft.drawRect(box2_x - 1, box2_y - 1, box2_width + 2, box2_height + 2, BLACK);
+        tft.drawRect(box1_x + 1, box1_y + 1, box1_width - 2, box2_height - 2, WHITE);
+        tft.drawRect(box1_x, box1_y, box1_width, box1_height, WHITE);
+        tft.drawRect(box1_x - 1, box1_y - 1, box1_width + 2, box1_height + 2, WHITE);
         selected_game = 1;
       }
       break;
@@ -84,12 +94,12 @@ void select_game(int button) {
       Serial.println("case 3");
       if (button == 0) {
         game_state = 4;
-        tft.drawRect(15, 81, 48, 58, BLACK);
-        tft.drawRect(14, 80, 50, 60, ST7735_GREEN);
-        tft.drawRect(13, 79, 52, 62, BLACK);
-        tft.drawRect(69, 81, 48, 58, WHITE);
-        tft.drawRect(68, 80, 50, 60, WHITE);
-        tft.drawRect(67, 79, 52, 62, WHITE);
+        tft.drawRect(box1_x + 1, box1_y + 1, box1_width - 2, box2_height - 2, BLACK);
+        tft.drawRect(box1_x, box1_y, box1_width, box2_height, ST7735_GREEN);
+        tft.drawRect(box1_x - 1, box1_y - 1, box1_width + 2, box2_height + 2, BLACK);
+        tft.drawRect(box2_x + 1, box2_y + 1, box2_width - 2, box2_height - 2, WHITE);
+        tft.drawRect(box2_x, box2_y, box2_width, box2_height, WHITE);
+        tft.drawRect(box2_x - 1, box2_y -1, box2_width + 2, box2_height + 2, WHITE);
         selected_game = 2;
       }
       break;
