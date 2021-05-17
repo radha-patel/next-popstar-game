@@ -11,7 +11,6 @@ TFT_eSPI tft = TFT_eSPI();
 const int SCREEN_HEIGHT = 160;
 const int SCREEN_WIDTH = 128;
 
-// Accelerometer variables
 MPU6050 imu;
 uint32_t primary_timer = 0;
 float x, y, z;
@@ -20,7 +19,6 @@ float older_x, older_y, older_z;
 float avg_x, avg_y, avg_z;
 const float ZOOM = 9.81; // to convert units of accelerometer reading from g to m/s^2
 
-// Button variables
 const uint8_t BUTTON1 = 0;
 const uint8_t BUTTON2 = 33;
 const uint8_t BUTTON3 = 32;
@@ -32,12 +30,11 @@ int db_count1 = 0;
 int db_state2 = 1;
 int db_count2 = 0;
 const uint8_t DB_COUNT_THRESHOLD = 100;
-
-// Tempo variables
 int tempo = 90;
 const int readings_per_beat = 20;
 const float delay_length = (60 * 1000) / (readings_per_beat * tempo);
 const float time_per_beat = (60 * 1000) / tempo;
+int training_trials = 1;
 const int beats = 4;
 uint32_t timer;
 float dance_time = 0;
@@ -75,7 +72,6 @@ int selected_game = 0; // 1 is Just Dance, 2 is Rhythm Game
 int selected_song = 0; // 1 is Stereo Hearts, 2 is Riptide 
 const char *song_names[2] = {"Stereo Hearts", "Riptide"}; 
 
-// LCD colors
 const uint16_t GREEN = 0x07e0;
 const uint16_t BLACK = 0x0000;
 const uint16_t MAROON = 0x7800;
@@ -90,7 +86,6 @@ const uint16_t CYAN = 0x07FF;
 const uint16_t LIGHT_GRAY = 0xBDF7;
 const uint16_t DARK_GRAY = 0x7BEF;
 
-// Song playing location
 int step_num = 0;
 int song_state = 0;
 int song_index = 0;
@@ -103,6 +98,30 @@ struct Riff {
   int length; //number of notes (essentially length of array.
   float note_period; //the timing of each note in milliseconds (take bpm, scale appropriately for note (sixteenth note would be 4 since four per quarter note) then
 };
+
+struct Choreo {
+  int steps; // number of steps in choreo
+  int moves[20]; // sequence of dance moves
+  int timing[20]; // number of beats per move 
+  int counts[20]; // number of iterations of each move
+};
+
+// BOUNCE (8), HAND ROLL (8), PUNCH (8), SPRINKLER (8)
+Choreo stereo_basic = {
+  4, {4, 2, 1, 5}, {8, 8, 8, 8}, {8, 8, 8, 8}
+};
+
+// HAND ROLL (4), DISCO (2), PUNCH (4), WAVE (4), SPRINKLER (4), ARM CROSS (2)
+Choreo stereo_advanced = {
+  6, {2, 7, 1, 3, 5, 6}, {4, 4, 8, 8, 4, 4}, {4, 2, 4, 4, 4, 2}
+};
+
+// PUNCH (8), HAND ROLL (8), WAVE (8), BOUNCE (16), SPRINKLER (8), ARM CROSS (12), DISCO (16)
+Choreo riptide_basic = {
+  7, {1, 2, 3, 4, 5, 6, 7}, {16, 16, 16, 16, 16, 32, 27}, {8, 8, 8, 16, 8, 12, 16}
+};
+
+uint32_t song_timer;
 
 Riff stereo = {{0, 0, 0, 0, 880.0, 880.0, 880.0, 880.0, 830.61, 830.61, 739.99, 659.25, 659.25, 587.33, 587.33, 554.37, 
     554.37, 554.37, 554.37, 440, 659.25, 659.25, 739.99, 659.25, 659.25, 587.33, 587.33, 554.37, 554.37, 493.88, 493.88, 
@@ -144,31 +163,6 @@ Riff riptide = {{466.16, 466.16, 523.25, 523.25, 554.37, 554.37, 622.25, 698.46,
 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0, 0, 0, 0, 0, 
 698.46, 698.46, 622.25, 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 622.25, 622.25, 622.25, 698.46, 698.46, 622.25, 
 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 622.25, 622.25, 622.25, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0}, 556, 150.00};
-
-
-struct Choreo {
-  int steps; // number of steps in choreo
-  int moves[20]; // sequence of dance moves
-  int timing[20]; // number of beats per move 
-  int counts[20]; // number of iterations of each move
-};
-
-// BOUNCE (8), HAND ROLL (8), PUNCH (8), SPRINKLER (8)
-Choreo stereo_basic = {
-  4, {4, 2, 1, 5}, {8, 8, 8, 8}, {8, 8, 8, 8}
-};
-
-// HAND ROLL (4), DISCO (2), PUNCH (4), WAVE (4), SPRINKLER (4), ARM CROSS (2)
-Choreo stereo_advanced = {
-  6, {2, 7, 1, 3, 5, 6}, {4, 4, 8, 8, 4, 4}, {4, 2, 4, 4, 4, 2}
-};
-
-// PUNCH (8), HAND ROLL (8), WAVE (8), BOUNCE (16), SPRINKLER (8), ARM CROSS (12), DISCO (16)
-Choreo riptide_basic = {
-  7, {1, 2, 3, 4, 5, 6, 7}, {16, 16, 16, 16, 16, 32, 27}, {8, 8, 8, 16, 8, 12, 16}
-};
-
-uint32_t song_timer;
 
 Riff song_to_play = stereo;
 Choreo dance_to_play = stereo_basic;
@@ -368,6 +362,18 @@ class Note {
       }
     }
 };
+
+struct Beatmap {
+  int actions[100]; // which button to press (0, 1, 2, 3)
+  int indices[100]; // index of the note in the Riff that this button should be pressed on
+  int num_notes; // total number of notes player should hit
+};
+
+Beatmap stereo_map = {{ 0,  1,  3,  2,  3,  2,  1,  0,  1,  2,  0,  1,  2,  3,  1,  0,  1,  3,  2,  3,  2,  1,  0,  1,  2},
+                      {13, 13, 20, 22, 23, 25, 27, 29, 36, 36, 47, 47, 47, 52, 54, 77, 84, 86, 87, 89, 91,100,111,111,111}, 25};
+
+Beatmap map_to_play = stereo_map;
+Note map_notes[200]; // change length if needed                 
 
 class UsernameGetter {
     char alphabet[50] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -578,7 +584,13 @@ void loop() {
  
   if (game_end) { // POST state
     Serial.println("you made it to the end!");
-    post_score(just_dance_total);
+    char thing[500];
+    if (selected_game == 1) {
+      sprintf(thing, "user=%s&justdance=%i&rhythm=0&karaoke=0", user, just_dance_total);
+    } else if (selected_game == 2) {
+      sprintf(thing, "user=%s&justdance=0&rhythm=%d&karaoke=0", user, rhythm_score);
+    }
+    post_score(thing);
     game_end = false;
     reset_dance_states();
     new_move = true;
@@ -592,10 +604,11 @@ void read_accel() {
   z = imu.accelCount[2] * imu.aRes * ZOOM;
 }
 
-void post_score(int score) {
+//void post_score(int score) {
+void post_score(char* thing) {
   Serial.println("the game ended!");
-  char thing[500];
-  sprintf(thing, "user=%s&justdance=%i&rhythm=0&karaoke=0", user, score);      
+  //char thing[500];
+  //sprintf(thing, "user=%s&justdance=%i&rhythm=0&karaoke=0", user, score);      
   sprintf(request, "POST http://608dev-2.net/sandbox/sc/team64/scoreboard.py HTTP/1.1\r\n");
   sprintf(request + strlen(request), "Host: %s\r\n", host);
   strcat(request, "Content-Type: application/x-www-form-urlencoded\r\n");
@@ -674,6 +687,7 @@ void play_just_dance() {
       song_state = 0;
       new_move = true;
       begin_dance = false;
+      begin_rhythm = false;
       step_num = 0;
       ledcWriteTone(AUDIO_PWM, 0);
       just_dance_end();
@@ -748,19 +762,6 @@ void play_just_dance() {
     }
 }
 
-void play_rhythm_game() {
-  tft.fillScreen(BLACK);
-  tft.drawString("Insert rhythm game", 10, 60, 1);
-  delay(3000);
-  home_screen = true;
-  begin_rhythm = false;
-  begin_dance = false;
-  begin_karaoke = false;
-  end_screen = false;
-  tft.fillScreen(BLACK);
-  draw_home_screen();
-}
-
 void play_karaoke_game() {
   tft.fillScreen(BLACK);
   tft.drawString("Insert karaoke game", 10, 60, 1);
@@ -772,4 +773,53 @@ void play_karaoke_game() {
   end_screen = false;
   tft.fillScreen(BLACK);
   draw_home_screen();
+}
+
+void play_rhythm_game() {
+  //tft.drawString("Insert rhythm game", 10, 60, 1);
+  //delay(3000);
+  
+  for (int i=0; i < map_to_play.num_notes; i++) {
+    if (millis() - song_timer >= map_notes[i].start_ind*song_to_play.note_period - 1500 && 
+        millis() - song_timer <= map_notes[i].start_ind*song_to_play.note_period + 200) { 
+      map_notes[i].step(); 
+      map_notes[i].checkHit();
+    }
+  }
+  char score_str[20];
+  sprintf(score_str, "Score: %d", rhythm_score);
+  tft.setCursor(0,0,2);
+  tft.println(score_str);
+
+  if (millis() >= song_timer) {
+    if (song_index == 0) {
+        Serial.println("Start music!");
+        ledcWriteTone(AUDIO_PWM, song_to_play.notes[song_index]);
+        song_index++;
+  
+        song_timer = millis(); 
+    } 
+    if (millis() - song_timer >= song_index * song_to_play.note_period) { // time to switch to the next note
+      if (song_index == song_to_play.length && begin_rhythm) { // end of song
+        ledcWriteTone(AUDIO_PWM, 0);
+        song_state = 0; 
+        song_index = 0;
+
+        game_end = true;
+        begin_rhythm = false;
+        begin_dance = false;
+        rhythm_end();        
+        
+      } else if (song_to_play.notes[song_index] != song_to_play.notes[song_index-1]) { // note change
+      ledcWriteTone(AUDIO_PWM, song_to_play.notes[song_index]);
+      song_index ++;
+      } else song_index++; // otherwise increment index 
+    }
+  }
+  if (begin_rhythm) {
+    tft.drawRect(0, SCREEN_HEIGHT-3*6, SCREEN_WIDTH, 3*6, TFT_WHITE); // visual indicator bar; hit notes when they are inside
+  }
+  
+  while (millis() - primary_timer < LOOP_PERIOD);
+  primary_timer = millis();
 }

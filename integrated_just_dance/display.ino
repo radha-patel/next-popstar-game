@@ -50,7 +50,17 @@ void load_game() {
 //  tft.drawString("Starting Just Dance", 7, 35, 1);
   tft.drawString("Starting the game...", 7, 35, 1);
   tft.drawString("Get ready to move!", 12, 50, 1);
+
   delay(2000);
+  tft.fillScreen(TFT_BLACK);
+  
+  if (selected_game == 2) {
+    for (int i=0; i<map_to_play.num_notes; i++){ // initialize Note array
+      map_notes[i] = Note(&tft, map_to_play.actions[i], map_to_play.indices[i], 1, 0);
+    }
+    song_timer = millis() + 1500; // should this go somewhere else??
+  }
+  
 }
 
 void just_dance_end() {
@@ -64,6 +74,19 @@ void just_dance_end() {
   tft.drawRect(14, 130, 100, 20, ST7735_GREEN);
   tft.drawString("Home Screen", 30, 136, 1);
   end_screen = true;
+}
+
+void rhythm_end() {
+  tft.fillScreen(TFT_BLACK);
+  tft.drawString("Total Score:", 25, 30, 2);
+  char score[8];
+  sprintf(score, "%d", rhythm_score);
+  tft.drawString(score, 50, 45, 2);
+
+  tft.drawRect(14, 130, 100, 20, ST7735_GREEN);
+  tft.drawString("Home Screen", 30, 136, 1);
+  end_screen = true;
+  rhythm_score = 0;
 }
 
 void select_game(int button) {
@@ -149,7 +172,11 @@ void select_game(int button) {
         begin_dance = true;
         begin_rhythm = true;
         begin_karaoke = true;
-        song_timer = millis();
+        if (selected_game == 2) {
+          song_timer = millis() + 1500;
+        } else {
+          song_timer = millis();
+        }
         song_state = 1;
         step_num = 0;
         dance_time = time_per_beat * dance_to_play.timing[step_num];
