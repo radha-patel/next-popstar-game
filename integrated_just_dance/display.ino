@@ -1,12 +1,16 @@
 // Boxes for game selection on home screen
-int box1_x = 14;
-int box1_y = 80;
+int box1_x = 13;
+int box1_y = 74;
 int box1_width = 50;
-int box1_height = 60;
-int box2_x = 68;
-int box2_y = 80;
+int box1_height = 40;
+int box2_x = 67;
+int box2_y = 74;
 int box2_width = 50;
-int box2_height = 60;
+int box2_height = 40;
+int box3_x = box1_x;
+int box3_y = box1_y + box1_height + 5;
+int box3_width = box2_x - box1_x + box2_width;
+int box3_height = 20;
 
 void draw_title() {
   tft.drawString("Who Will Be The", 20, 25, 1);
@@ -26,12 +30,14 @@ void draw_user_selection_screen() {
 void draw_home_screen() {
   draw_title();
   tft.drawString("Play to find out!", 15, 60, 1);
-  tft.drawRect(14, 80, 50, 60, ST7735_GREEN);
-  tft.drawString("Just", 28, 100, 1);
-  tft.drawString("Dance", 25, 110, 1);
-  tft.drawRect(68, 80, 50, 60, ST7735_GREEN);
-  tft.drawString("Rhythm", 76, 100, 1);
-  tft.drawString("Game", 82, 110, 1);
+  tft.drawRect(box1_x, box1_y, box1_width, box1_height, ST7735_GREEN);
+  tft.drawString("Just", 27, 86, 1);
+  tft.drawString("Dance", 24, 96, 1);
+  tft.drawRect(box2_x, box2_y, box2_width, box2_height, ST7735_GREEN);
+  tft.drawString("Rhythm", 75, 86, 1);
+  tft.drawString("Game", 81, 96, 1);
+  tft.drawRect(box3_x, box3_y, box3_width, box3_height, ST7735_GREEN);
+  tft.drawString("Karaoke", 45, box3_y + box3_height/2 - 3, 1);
   char username[25];
   sprintf(username, "Username: %s", user);
   Serial.printf("Username... %s \n", username);
