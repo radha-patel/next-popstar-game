@@ -6,6 +6,9 @@
 #include <WiFi.h>
 TFT_eSPI tft = TFT_eSPI();
 
+const int SCREEN_HEIGHT = 160;
+const int SCREEN_WIDTH = 128;
+
 MPU6050 imu;
 uint32_t primary_timer = 0;
 float x, y, z;
@@ -16,6 +19,10 @@ const float ZOOM = 9.81; // to convert units of accelerometer reading from g to 
 
 const uint8_t BUTTON1 = 0;
 const uint8_t BUTTON2 = 33;
+const uint8_t BUTTON3 = 32;
+const uint8_t BUTTON4 = 3;
+uint8_t R = 12;
+uint8_t G = 27;
 int db_state1 = 1;
 int db_count1 = 0;
 int db_state2 = 1;
@@ -182,6 +189,7 @@ char request[2000];
 int game_end;
 char user[10];
 int just_dance_total = 0;
+int rhythm_score = 0;
 char individual_scores[500] = "";
 
 //Some constants and some resources:
@@ -189,7 +197,7 @@ const int RESPONSE_TIMEOUT = 6000; //ms to wait for response from host
 const uint16_t OUT_BUFFER_SIZE = 1000; //size of buffer to hold HTTP response
 char old_response[OUT_BUFFER_SIZE]; //char array buffer to hold HTTP request
 char response[OUT_BUFFER_SIZE]; //char array buffer to hold HTTP request
-const int LOOP_PERIOD = 40;
+const int LOOP_PERIOD = 20;
 
 class Button {
   public:
@@ -271,6 +279,83 @@ class Button {
 
 Button button(BUTTON1);
 Button button2(BUTTON2);
+Button button3(BUTTON3);
+Button button4(BUTTON4);
+Button buttons[4] = {button, button2, button3, button4};
+
+class Note {
+  public:
+    uint8_t action;    // which button (1, 2, 3, 4)
+    uint8_t type;      // short press vs hold. Currently unused; hold notes aren't implemented yet. implement later if there's time
+    uint32_t duration; // duration of hold note; also currently unused
+    int start_ind;
+    bool active;
+    TFT_eSPI* local_tft;
+    int NOTE_CLR; // idk if you wanna have different colors. actually just check if any of the stuff below here is necessary
+    int BKGND_CLR;
+    int RADIUS;
+    int DT;
+    float y;
+    float v;
+    float g;
+    Note(TFT_eSPI* tft_to_use=&tft, uint8_t a=0, int start=0, uint8_t t=1, int d=0, int rad = 6, int dt=LOOP_PERIOD, 
+        int note_color = TFT_BLUE, int backgnd_color = TFT_BLACK) { // value of dt might be kinda sketch
+          
+        action = a;
+        type = t;
+        start_ind = start;
+        duration = d;
+        active = true;
+        local_tft = tft_to_use;
+        RADIUS = rad;
+        NOTE_CLR = note_color;
+        BKGND_CLR = backgnd_color;
+        DT = dt;
+        y = -RADIUS;
+        v = 60;
+        g = 50; // prev 16 10 w/o loop period
+    }
+    void step() {
+      if (active) {
+        local_tft->drawCircle(25*(action+1), y, RADIUS, BKGND_CLR);
+        v += 0.001*float(DT)*g;
+        y += v*0.001*float(DT);
+        local_tft->drawCircle(25*(action+1), y, RADIUS, NOTE_CLR);
+      } 
+
+    }
+    void checkHit() {
+      if (y > SCREEN_HEIGHT + RADIUS) {
+        Serial.println("miss");
+        active = false;
+        digitalWrite(R, HIGH);
+        digitalWrite(G, LOW);
+      }
+      int val = buttons[action].update();
+      if (val == 1 && active) {
+        uint32_t off_timing = abs(millis() - song_timer - start_ind*song_to_play.note_period);
+        //Serial.println(off_timing);
+        if (off_timing <= 80) {
+          Serial.println("perfect!");
+          digitalWrite(R, LOW);
+          digitalWrite(G, HIGH);
+          rhythm_score += 100;
+        } else if (off_timing <= 160) {
+          Serial.println("good");
+          digitalWrite(R, HIGH);
+          digitalWrite(G, HIGH);
+          rhythm_score += 50;
+        } else {
+          Serial.println("miss");
+          digitalWrite(R, HIGH);
+          digitalWrite(G, LOW);
+        }
+        //Serial.println(rhythm_score);
+        active = false;
+        local_tft->drawCircle(25*(action+1), y, RADIUS, BKGND_CLR);       
+      }
+    }
+};
 
 class UsernameGetter {
     char alphabet[50] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -382,8 +467,12 @@ void setup() {
 
   pinMode(BUTTON1, INPUT_PULLUP);
   pinMode(BUTTON2, INPUT_PULLUP);
+  pinMode(BUTTON3, INPUT_PULLUP);
+  pinMode(BUTTON4, INPUT_PULLUP);
   pinMode(AUDIO_TRANSDUCER, OUTPUT);
   pinMode(LCD_CONTROL, OUTPUT);
+  pinMode(R, OUTPUT);
+  pinMode(G, OUTPUT);
 
   //set up AUDIO_PWM which we will control for music:
   ledcSetup(AUDIO_PWM, 0, 12);//12 bits of PWM precision
@@ -395,6 +484,7 @@ void setup() {
 
   game_end = 0;
   just_dance_total = 0;
+  rhythm_score = 0;
   song_index = 0;
   draw_user_selection_screen();
 }
