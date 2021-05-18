@@ -110,13 +110,11 @@ void sprinkler() {
     case 1:
       if (z < -2) {
         sprinkler_state = 2;
-        Serial.println("Sprinkler: stage 1");
       }
       break;
     case 2:
       if (z > 2) {
         sprinkler_state = 3;
-        Serial.println("Sprinkler: stage 2");
       }
       break;
     case 3:
@@ -136,13 +134,11 @@ void arm_cross() {
     case 1:
       if (z < -3) {
         arm_cross_state = 2;
-        Serial.println("Arm Cross: stage 1");
       }
       break;
     case 2:
       if (z > 3) {
         arm_cross_state = 3;
-        Serial.println("Arm Cross: stage 2");
       }
       break;
     case 3:
@@ -162,25 +158,21 @@ void disco() {
     case 1:
       if (x > 1) {
         disco_state = 2;
-        Serial.println("Disco: stage 1");
       }
       break;
     case 2:
       if (y > 5) {
         disco_state = 3;
-        Serial.println("Disco: stage 2");
       }
       break;
     case 3:
       if (x < -1) {
         disco_state = 4;
-        Serial.println("Disco: stage 3");
       }
       break;
     case 4:
       if (y < 3) {
         disco_state = 5;
-        Serial.println("Disco: stage 4");
       }
       break;
     case 5:

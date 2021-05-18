@@ -9,10 +9,15 @@ void readFile(fs::FS &fs, const char * path){
     }
 
     Serial.print("Read from file: ");
+//    Serial.println("debug 1");
     while(file.available()){
+//      Serial.println("debug 2");
       char letter = file.read();
+//      Serial.println("debug 3");
       Serial.print(letter);
+//      Serial.println("debug 4");
       sprintf(message_buffer + offset, "%c", letter);
+//      Serial.println("debug 5");
       offset++;
     }
     Serial.println(message_buffer);

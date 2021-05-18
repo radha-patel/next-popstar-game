@@ -91,13 +91,11 @@ void rhythm_end() {
 void select_game(int button) {
   switch(game_state) {
     case 0:
-      Serial.println("case 0");
       if (button == 1) {
         game_state = 1;
       }
       break;
     case 1:
-      Serial.println("case 1");
       if (button == 0) {
         game_state = 2;
         draw_erase_box(box3_x, box3_y, box3_width, box3_height, box1_x, box1_y, box1_width, box1_height);
@@ -105,7 +103,6 @@ void select_game(int button) {
       }
       break;
     case 2:
-      Serial.println("case 2");
       if (button == 2) {
         game_state = 7;
       }
@@ -114,7 +111,6 @@ void select_game(int button) {
       }
       break;
     case 3:
-      Serial.println("case 3");
       if (button == 0) {
         game_state = 4;
         draw_erase_box(box1_x, box1_y, box1_width, box1_height, box2_x, box2_y, box2_width, box2_height);
@@ -122,7 +118,6 @@ void select_game(int button) {
       }
       break;
     case 4:
-      Serial.println("case 4");
       if (button == 2) {
         game_state = 7;
       }
@@ -131,7 +126,6 @@ void select_game(int button) {
       }
       break;
     case 5:
-      Serial.println("case 5");
       if (button == 0) {
         game_state = 6;
         draw_erase_box(box2_x, box2_y, box2_width, box2_height, box3_x, box3_y, box3_width, box3_height);
@@ -139,7 +133,6 @@ void select_game(int button) {
       }
       break;
     case 6:
-       Serial.println("case 6");
        if (button == 2) {
         game_state = 7;
        } 
@@ -148,7 +141,6 @@ void select_game(int button) {
        }
        break;
     case 7:
-      Serial.println("case 7");
       if (button == 0) {
         game_state = 8;
         tft.fillScreen(BLACK);
@@ -156,16 +148,13 @@ void select_game(int button) {
       }
       break;
     case 8: 
-      Serial.println("case 8");
       select_song(button);
       if (button == 2) {
         game_state = 9;
       }
       break;
     case 9:
-      Serial.println("case 9");
       if (button == 0) {
-        Serial.println("in case 6");
         home_screen = false;
         load_game();
         begin_dance = true;
@@ -206,22 +195,32 @@ void select_song(int button) {
       if (button == 0) {
         song_pick_state = 0;
         tft.fillRect(0, 66, 128, 10, BLACK);
-        char output[20];
+        char output[50];
         sprintf(output, "** %s **", song_names[selected_song]);
 
         tft.setTextColor(YELLOW, TFT_BLACK);
         if (selected_song == 0) { // Stereo Hearts
+          Serial.println("song 1");
           song_to_play = stereo;
           dance_to_play = stereo_advanced;
           tft.drawString(output, 8, 66, 1);
         } else if (selected_song == 1) { // Riptide
+          Serial.println("song 2");
           song_to_play = riptide;
           dance_to_play = riptide_basic;
           tft.drawString(output, 24, 66, 1);
+        } else if (selected_song == 2) { // Long Stereo Hearts
+          // DOES NOT WORK YET
+          Serial.println("song 3");
+          readFile(SD, "/stereo.txt");
+//          double_extractor(message_buffer, stereo_long.notes, ',');
+          song_to_play = riptide;
+          dance_to_play = riptide_basic;
+          tft.drawString(output, 6, 66, 1);
         }
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
         selected_song += 1;
-        selected_song = selected_song % 2;
+        selected_song = selected_song % 3;
       }
       break;
   }
