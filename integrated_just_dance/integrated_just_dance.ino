@@ -169,34 +169,6 @@ Riff riptide = {{466.16, 466.16, 523.25, 523.25, 554.37, 554.37, 622.25, 698.46,
 Riff long_song_to_play = {{}, 656, 166.6};
 Riff stereo_long = {{}, 656, 166.6};
 
-struct Choreo {
-  int steps; // number of steps in choreo
-  int moves[20]; // sequence of dance moves
-  int timing[20]; // number of beats per move 
-  int counts[20]; // number of iterations of each move
-};
-
-// BOUNCE (8), HAND ROLL (8), PUNCH (8), SPRINKLER (8)
-Choreo stereo_basic = {
-  4, {4, 2, 1, 5}, {8, 8, 8, 8}, {8, 8, 8, 8}
-};
-
-// HAND ROLL (4), DISCO (2), PUNCH (4), WAVE (4), SPRINKLER (4), ARM CROSS (2)
-Choreo stereo_advanced = {
-  6, {2, 7, 1, 3, 5, 6}, {4, 4, 8, 8, 4, 4}, {4, 2, 4, 4, 4, 2}
-};
-
-Choreo stereo_long_dance = {
-  1, {1}, {656}, {1}
-};
-
-// PUNCH (8), HAND ROLL (8), WAVE (8), BOUNCE (16), SPRINKLER (8), ARM CROSS (12), DISCO (16)
-Choreo riptide_basic = {
-  7, {1, 2, 3, 4, 5, 6, 7}, {16, 16, 16, 16, 16, 32, 27}, {8, 8, 8, 16, 8, 12, 16}
-};
-
-uint32_t song_timer;
-
 Riff song_to_play = stereo;
 Choreo dance_to_play = stereo_basic;
 
