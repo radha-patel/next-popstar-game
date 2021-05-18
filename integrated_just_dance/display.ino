@@ -49,7 +49,7 @@ void load_game() {
   tft.fillScreen(TFT_BLACK);
 //  tft.drawString("Starting Just Dance", 7, 35, 1);
   tft.drawString("Starting the game...", 7, 35, 1);
-  tft.drawString("Get ready to move!", 12, 50, 1);
+  tft.drawString("Get ready!", 12, 50, 1);
 
   delay(2000);
   tft.fillScreen(TFT_BLACK);
@@ -86,7 +86,6 @@ void rhythm_end() {
   tft.drawRect(14, 130, 100, 20, ST7735_GREEN);
   tft.drawString("Home Screen", 30, 136, 1);
   end_screen = true;
-  rhythm_score = 0;
 }
 
 void select_game(int button) {

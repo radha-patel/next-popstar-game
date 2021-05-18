@@ -589,6 +589,7 @@ void loop() {
       sprintf(thing, "user=%s&justdance=%i&rhythm=0&karaoke=0", user, just_dance_total);
     } else if (selected_game == 2) {
       sprintf(thing, "user=%s&justdance=0&rhythm=%d&karaoke=0", user, rhythm_score);
+      rhythm_score = 0;
     }
     post_score(thing);
     game_end = false;
