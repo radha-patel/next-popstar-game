@@ -58,7 +58,7 @@ void load_game() {
     for (int i=0; i<map_to_play.num_notes; i++){ // initialize Note array
       map_notes[i] = Note(&tft, map_to_play.actions[i], map_to_play.indices[i], 1, 0);
     }
-    song_timer = millis() + 1500; // should this go somewhere else??
+    song_timer = millis() + 1500;
   }
   
 }
@@ -215,25 +215,38 @@ void select_song(int button) {
           tempo = 90;
           song_to_play = stereo;
           dance_to_play = stereo_advanced;
+          map_to_play = stereo_map;
           tft.drawString(output, 8, 66, 1);
         } else if (selected_song == 1) { // Riptide
           Serial.println("song 2");
           tempo = 100;
           song_to_play = riptide;
           dance_to_play = riptide_basic;
+          map_to_play = riptide_map;
           tft.drawString(output, 24, 66, 1);
         } else if (selected_song == 2) { // Long Stereo Hearts
           tempo = 90;
           dance_to_play = stereo_easy;
+          map_to_play = stereo_map;
           tft.drawString(output, 4, 66, 1);
         } else if (selected_song == 3) {
           tempo = 100;
           dance_to_play = riptide_easy;
+          map_to_play = riptide_map;
           tft.drawString(output, 22, 66, 1);
+        } else if (selected_song == 4) {
+          // add setting tempo and dance_to_play variables
+          song_to_play = shake;
+          map_to_play = shake_map;
+          tft.drawString(output, 9, 66, 1);
+        } else if (selected_song == 5) {
+          song_to_play = havana;
+          map_to_play = havana_map;
+          tft.drawString(output, 25, 66, 1);
         }
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
         selected_song += 1;
-        selected_song = selected_song % 4;
+        selected_song = selected_song % 6;
       }
       break;
   }
