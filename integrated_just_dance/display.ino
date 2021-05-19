@@ -49,7 +49,7 @@ void load_game() {
   tft.fillScreen(TFT_BLACK);
 //  tft.drawString("Starting Just Dance", 7, 35, 1);
   tft.drawString("Starting the game...", 7, 35, 1);
-  tft.drawString("Get ready!", 12, 50, 1);
+  tft.drawString("Get ready to play!", 12, 50, 1);
 
   delay(2000);
   tft.fillScreen(TFT_BLACK);
@@ -167,8 +167,19 @@ void select_game(int button) {
         }
         song_state = 1;
         step_num = 0;
+        time_per_beat = (60 * 1000) / tempo;
         dance_time = time_per_beat * dance_to_play.timing[step_num];
         game_state = 0;
+        if (selected_song == 3) {
+          Serial.println("song 3");
+          readFile(SD, "/stereo.txt");
+          double_extractor(message_buffer, stereo_long.notes, ',');
+          song_to_play = stereo_long;
+        } else if (selected_song == 4) {
+          readFile(SD, "/riptide.txt");
+          double_extractor(message_buffer, riptide_long.notes, ',');
+          song_to_play = riptide_long;
+        }
       }
       break;
   }
@@ -201,26 +212,28 @@ void select_song(int button) {
         tft.setTextColor(YELLOW, TFT_BLACK);
         if (selected_song == 0) { // Stereo Hearts
           Serial.println("song 1");
+          tempo = 90;
           song_to_play = stereo;
           dance_to_play = stereo_advanced;
           tft.drawString(output, 8, 66, 1);
         } else if (selected_song == 1) { // Riptide
           Serial.println("song 2");
+          tempo = 100;
           song_to_play = riptide;
           dance_to_play = riptide_basic;
           tft.drawString(output, 24, 66, 1);
         } else if (selected_song == 2) { // Long Stereo Hearts
-          // DOES NOT WORK YET
-          Serial.println("song 3");
-          readFile(SD, "/stereo.txt");
-//          double_extractor(message_buffer, stereo_long.notes, ',');
-          song_to_play = riptide;
-          dance_to_play = riptide_basic;
-          tft.drawString(output, 6, 66, 1);
+          tempo = 90;
+          dance_to_play = stereo_easy;
+          tft.drawString(output, 4, 66, 1);
+        } else if (selected_song == 3) {
+          tempo = 100;
+          dance_to_play = riptide_easy;
+          tft.drawString(output, 22, 66, 1);
         }
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
         selected_song += 1;
-        selected_song = selected_song % 3;
+        selected_song = selected_song % 4;
       }
       break;
   }

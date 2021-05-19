@@ -33,7 +33,7 @@ const uint8_t DB_COUNT_THRESHOLD = 100;
 int tempo = 90;
 const int readings_per_beat = 20;
 const float delay_length = (60 * 1000) / (readings_per_beat * tempo);
-const float time_per_beat = (60 * 1000) / tempo;
+float time_per_beat = (60 * 1000) / tempo;
 int training_trials = 1;
 const int beats = 4;
 uint32_t timer;
@@ -70,7 +70,7 @@ bool game_loaded = false;
 // Dance/song selection variables
 int selected_game = 0; // 1 is Just Dance, 2 is Rhythm Game
 int selected_song = 0; // 1 is Stereo Hearts, 2 is Riptide 
-const char *song_names[3] = {"Stereo Hearts", "Riptide", "Stereo Hearts Long"}; 
+const char *song_names[4] = {"Stereo Hearts", "Riptide", "Stereo Hearts+", "Riptide+"}; 
 
 const uint16_t GREEN = 0x07e0;
 const uint16_t BLACK = 0x0000;
@@ -119,7 +119,15 @@ Choreo stereo_advanced = {
 
 // PUNCH (8), HAND ROLL (8), WAVE (8), BOUNCE (16), SPRINKLER (8), ARM CROSS (12), DISCO (16)
 Choreo riptide_basic = {
-  7, {1, 2, 3, 4, 5, 6, 7}, {16, 16, 16, 16, 16, 32, 27}, {8, 8, 8, 16, 8, 12, 16}
+  7, {1, 2, 3, 4, 5, 6, 7}, {16, 16, 16, 16, 16, 32, 25}, {8, 8, 8, 16, 8, 12, 16}
+};
+
+Choreo stereo_easy = {
+  1, {1}, {656 / 4}, {1}
+};
+
+Choreo riptide_easy = {
+  1, {2}, {656 / 4 - 30}, {1}
 };
 
 uint32_t song_timer;
@@ -166,8 +174,9 @@ Riff riptide = {{466.16, 466.16, 523.25, 523.25, 554.37, 554.37, 622.25, 698.46,
 622.25, 698.46, 698.46, 622.25, 622.25, 698.46, 622.25, 622.25, 622.25, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0}, 556, 150.00};
 
 //Riff long_song_to_play = {{}, 656, 97.4026};
-Riff long_song_to_play = {{}, 656, 166.6};
-Riff stereo_long = {{}, 656, 166.6};
+Riff long_song_to_play = {{}, 656, 166.67};
+Riff stereo_long = {{}, 656, 166.67};
+Riff riptide_long = {{}, 656, 150};
 
 Riff song_to_play = stereo;
 Choreo dance_to_play = stereo_basic;
@@ -709,8 +718,11 @@ void play_long_song() {
 }
 
 void play_just_dance() {
+  Serial.println(millis() - song_timer);
+  Serial.println(dance_time);
   if (step_num < dance_to_play.steps && millis() - song_timer > dance_time) {
       int result = similarity_score(dance_to_play.counts[step_num], move_iter);
+      Serial.println(step_num);
       new_move = true;
       step_num += 1;
       dance_time += time_per_beat * dance_to_play.timing[step_num];
@@ -719,11 +731,13 @@ void play_just_dance() {
       move_iter = 0;
       tft.fillRect(0, 0, 128, 20, BLACK);
     } else if (step_num == dance_to_play.steps) { // reset all values, enter game end state
+      Serial.println("End dance!");
       game_end = true;
       song_state = 0;
       new_move = true;
       begin_dance = false;
       begin_rhythm = false;
+      begin_karaoke = false;
       step_num = 0;
       ledcWriteTone(AUDIO_PWM, 0);
       just_dance_end();
@@ -737,6 +751,7 @@ void play_just_dance() {
       } 
       if (millis() - song_timer >= song_index * song_to_play.note_period) { // time to switch to the next note
         if (song_index == song_to_play.length) { // end of song
+          Serial.println("End music!");
           ledcWriteTone(AUDIO_PWM, 0);
           song_state = 0; 
           song_index = 0;
@@ -844,6 +859,7 @@ void play_rhythm_game() {
         game_end = true;
         begin_rhythm = false;
         begin_dance = false;
+        begin_karaoke = false;
         rhythm_end();        
         
       } else if (song_to_play.notes[song_index] != song_to_play.notes[song_index-1]) { // note change
