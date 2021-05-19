@@ -70,7 +70,7 @@ bool game_loaded = false;
 // Dance/song selection variables
 int selected_game = 0; // 1 is Just Dance, 2 is Rhythm Game
 int selected_song = 0; // 1 is Stereo Hearts, 2 is Riptide 
-const char *song_names[4] = {"Stereo Hearts", "Riptide", "Stereo Hearts+", "Riptide+"}; 
+const char *song_names[6] = {"Stereo Hearts", "Riptide", "Stereo Hearts+", "Riptide+", "Havana+", "Shake it Off+"}; 
 
 const uint16_t GREEN = 0x07e0;
 const uint16_t BLACK = 0x0000;
@@ -130,6 +130,14 @@ Choreo riptide_easy = {
   1, {2}, {656 / 4 - 30}, {1}
 };
 
+Choreo havana_easy = {
+  1, {1}, {656 / 4 - 90}, {1}
+};
+
+Choreo shake_easy = {
+  1, {1}, {656 / 4}, {1}
+};
+
 uint32_t song_timer;
 
 Riff stereo = {{0, 0, 0, 0, 880.0, 880.0, 880.0, 880.0, 830.61, 830.61, 739.99, 659.25, 659.25, 587.33, 587.33, 554.37, 
@@ -177,6 +185,8 @@ Riff riptide = {{466.16, 466.16, 523.25, 523.25, 554.37, 554.37, 622.25, 698.46,
 Riff long_song_to_play = {{}, 656, 166.67};
 Riff stereo_long = {{}, 656, 166.67};
 Riff riptide_long = {{}, 656, 150};
+Riff havana_long = {{}, 656, 166.67};
+Riff shake_long = {{}, 656, 97.4026};
 
 Riff song_to_play = stereo;
 Choreo dance_to_play = stereo_basic;

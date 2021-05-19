@@ -179,6 +179,14 @@ void select_game(int button) {
           readFile(SD, "/riptide.txt");
           double_extractor(message_buffer, riptide_long.notes, ',');
           song_to_play = riptide_long;
+        } else if (selected_song == 5) {
+          readFile(SD, "/havana.txt");
+          double_extractor(message_buffer, havana_long.notes, ',');
+          song_to_play = havana_long;
+        } else if (selected_song == 0) {
+          readFile(SD, "/shake.txt");
+          double_extractor(message_buffer, shake_long.notes, ',');
+          song_to_play = shake_long;
         }
       }
       break;
@@ -226,14 +234,22 @@ void select_song(int button) {
           tempo = 90;
           dance_to_play = stereo_easy;
           tft.drawString(output, 4, 66, 1);
-        } else if (selected_song == 3) {
+        } else if (selected_song == 3) { // Long Riptide
           tempo = 100;
           dance_to_play = riptide_easy;
+          tft.drawString(output, 26, 66, 1);
+        } else if (selected_song == 4) { // Long Havana
+          tempo = 100;
+          dance_to_play = havana_easy;
           tft.drawString(output, 22, 66, 1);
+        } else if (selected_song == 5) { // Long Shake It Off
+          tempo = 160;
+          dance_to_play = shake_easy;
+          tft.drawString(output, 6, 66, 1);
         }
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
         selected_song += 1;
-        selected_song = selected_song % 4;
+        selected_song = selected_song % 6;
       }
       break;
   }
