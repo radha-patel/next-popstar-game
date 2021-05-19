@@ -170,16 +170,16 @@ void select_game(int button) {
         time_per_beat = (60 * 1000) / tempo;
         dance_time = time_per_beat * dance_to_play.timing[step_num];
         game_state = 0;
-        if (selected_song == 3) {
-          Serial.println("song 3");
-          readFile(SD, "/stereo.txt");
-          double_extractor(message_buffer, stereo_long.notes, ',');
-          song_to_play = stereo_long;
-        } else if (selected_song == 4) {
-          readFile(SD, "/riptide.txt");
-          double_extractor(message_buffer, riptide_long.notes, ',');
-          song_to_play = riptide_long;
-        }
+//        if (selected_song == 3) {
+//          Serial.println("song 3");
+//          readFile(SD, "/stereo.txt");
+//          double_extractor(message_buffer, stereo_long.notes, ',');
+//          song_to_play = stereo_long;
+//        } else if (selected_song == 4) {
+//          readFile(SD, "/riptide.txt");
+//          double_extractor(message_buffer, riptide_long.notes, ',');
+//          song_to_play = riptide_long;
+//        }
       }
       break;
   }
@@ -214,7 +214,7 @@ void select_song(int button) {
           Serial.println("song 1");
           tempo = 90;
           song_to_play = stereo;
-          dance_to_play = stereo_advanced;
+          dance_to_play = stereo_easy;
           map_to_play = stereo_map;
           tft.drawString(output, 8, 66, 1);
         } else if (selected_song == 1) { // Riptide
@@ -224,29 +224,32 @@ void select_song(int button) {
           dance_to_play = riptide_basic;
           map_to_play = riptide_map;
           tft.drawString(output, 24, 66, 1);
-        } else if (selected_song == 2) { // Long Stereo Hearts
-          tempo = 90;
-          dance_to_play = stereo_easy;
-          map_to_play = stereo_map;
-          tft.drawString(output, 4, 66, 1);
-        } else if (selected_song == 3) {
-          tempo = 100;
-          dance_to_play = riptide_easy;
-          map_to_play = riptide_map;
-          tft.drawString(output, 22, 66, 1);
-        } else if (selected_song == 4) {
-          // add setting tempo and dance_to_play variables
+//        } else if (selected_song == 2) { // Long Stereo Hearts
+//          tempo = 90;
+//          dance_to_play = stereo_easy;
+//          map_to_play = stereo_map;
+//          tft.drawString(output, 4, 66, 1);
+//        } else if (selected_song == 3) { // Long Riptide 
+//          tempo = 100;
+//          dance_to_play = riptide_easy;
+//          map_to_play = riptide_map;
+//          tft.drawString(output, 22, 66, 1);
+        } else if (selected_song == 2) { // Shake it Off
+          tempo = 160;
           song_to_play = shake;
+          dance_to_play = shake_easy;
           map_to_play = shake_map;
           tft.drawString(output, 9, 66, 1);
-        } else if (selected_song == 5) {
+        } else if (selected_song == 3) { // Havana
+          tempo = 105;
           song_to_play = havana;
+          dance_to_play = havana_easy;
           map_to_play = havana_map;
           tft.drawString(output, 25, 66, 1);
         }
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
         selected_song += 1;
-        selected_song = selected_song % 6;
+        selected_song = selected_song % 4;
       }
       break;
   }
