@@ -69,12 +69,13 @@ void just_dance_end() {
   tft.setTextColor(WHITE, BLACK);
   tft.setCursor(0, 0);
   tft.setTextSize(1);
-  tft.drawString("Total Score:", 25, 30, 2);
+  tft.drawString("Total Score:", 25, 10, 2);
   char score[5];
   sprintf(score, "%d", just_dance_total);
-  tft.drawString(score, 56, 45, 2);
-  tft.setCursor(0, 70, 1); 
+  tft.drawString(score, 56, 25, 2);
+  tft.setCursor(0, 50, 1); 
   tft.printf(individual_scores);
+  tft.fillRect(0, 124, 114, 60, BLACK); 
   tft.drawRect(14, 130, 100, 20, ST7735_GREEN);
   tft.drawString("Home Screen", 30, 136, 1);
   end_screen = true;
