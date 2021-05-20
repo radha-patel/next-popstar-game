@@ -3,6 +3,11 @@ void punch() {
     case 0:
       tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
       tft.fillRect(0, 20, 128, 140, GREEN);
+      tft.setTextColor(BLACK, GREEN);
+      tft.setCursor(20, 50);
+      tft.setTextSize(3);
+      tft.println("Punch");
+      Serial.println("punch");
       punch_state = 1;
       break;
     case 1:
@@ -26,6 +31,11 @@ void hand_roll() {
     case 0:
       tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
       tft.fillRect(0, 20, 128, 140, PURPLE);
+      tft.setTextColor(BLACK, PURPLE);
+      tft.setCursor(32, 50);
+      tft.setTextSize(3);
+      tft.println("Roll");
+      Serial.println("roll");
       hand_roll_state = 1;
       break;
     case 1: 
@@ -59,6 +69,11 @@ void wave() {
     case 0:
       tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
       tft.fillRect(0, 20, 128, 140, BLUE);
+      tft.setTextColor(BLACK, BLUE);
+      tft.setCursor(32, 50);
+      tft.setTextSize(3);
+      tft.println("Wave");
+      Serial.println("wave");
       wave_state = 1;
       break;
     case 1:
@@ -82,6 +97,11 @@ void bounce() {
     case 0:
       tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
       tft.fillRect(0, 20, 128, 140, MAGENTA);
+      tft.setTextColor(BLACK, MAGENTA);
+      tft.setCursor(14, 50);
+      tft.setTextSize(3);
+      tft.println("Bounce");
+      Serial.println("bounce");
       bounce_state = 1;
       break;
     case 1:
@@ -105,6 +125,11 @@ void sprinkler() {
     case 0:
       tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
       tft.fillRect(0, 20, 128, 140, CYAN);
+      tft.setTextColor(BLACK, CYAN);
+      tft.setCursor(12, 50);
+      tft.setTextSize(2);
+      tft.println("Sprinkler");
+      Serial.println("sprinkler");
       sprinkler_state = 1;
       break;
     case 1:
@@ -129,6 +154,11 @@ void arm_cross() {
     case 0:
       tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
       tft.fillRect(0, 20, 128, 140, YELLOW);
+      tft.setTextColor(BLACK, YELLOW);
+      tft.setCursor(12, 50);
+      tft.setTextSize(2);
+      tft.println("Arm Cross");
+      Serial.println("arm cross");
       arm_cross_state = 1;
       break;
     case 1:
@@ -153,6 +183,11 @@ void disco() {
     case 0:
       tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
       tft.fillRect(0, 20, 128, 140, MAROON);
+      tft.setTextColor(BLACK, MAROON);
+      tft.setCursor(20, 50);
+      tft.setTextSize(3);
+      tft.println("Disco");
+      Serial.println("disco");
       disco_state = 1;
       break;
     case 1:
@@ -177,6 +212,93 @@ void disco() {
       break;
     case 5:
       disco_state = 0;
+      move_iter += 1;
+      break;
+  }
+}
+
+void clap() {
+  switch(clap_state) {
+    case 0:
+      tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
+      tft.fillRect(0, 20, 128, 140, LIGHT_GRAY);
+      tft.setTextColor(BLACK, LIGHT_GRAY);
+      tft.setCursor(28, 50);
+      tft.setTextSize(3);
+      tft.println("Clap");
+      Serial.println("clap");
+      clap_state = 1;
+      break;
+    case 1:
+      if (z > 8) {
+        clap_state = 2;
+      }
+      break;
+    case 2:
+      if (z < 0) {
+        clap_state = 3;
+      }
+      break;
+    case 3:
+      clap_state = 0;
+      move_iter += 1;
+      break;
+  }
+}
+
+void fist_pump() {
+  switch(fist_pump_state) {
+    case 0:
+      tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
+      tft.fillRect(0, 20, 128, 140, ORANGE);
+      tft.setTextColor(BLACK, ORANGE);
+      tft.setCursor(12, 50);
+      tft.setTextSize(2);
+      tft.println("Fist Pump");
+      Serial.println("pump");
+      fist_pump_state = 1;
+      break;
+    case 1:
+      if (z < -12) {
+        fist_pump_state = 2;
+      }
+      break;
+    case 2:
+      if (z > -5) {
+        fist_pump_state = 3;
+      }
+      break;
+    case 3:
+      fist_pump_state = 0;
+      move_iter += 1;
+      break;
+  }
+}
+
+void arm_press() {
+  switch(arm_press_state) {
+    case 0:
+      tft.fillRect(0, 0, 128 * move_iter / dance_to_play.counts[step_num], 20, WHITE);
+      tft.fillRect(0, 20, 128, 140, RED);
+      tft.setTextColor(BLACK, RED);
+      tft.setCursor(12, 50);
+      tft.setTextSize(2);
+      tft.println("Arm Press");
+      Serial.println("arm press");
+      arm_press_state = 1;
+      break;
+    case 1:
+      if (z > 18) {
+        arm_press_state = 2;
+      }
+      break;
+    case 2:
+      if (z < 4) {
+        arm_press_state = 3;
+      }
+      break;
+    case 3:
+      arm_press_state = 0;
       move_iter += 1;
       break;
   }
