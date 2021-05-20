@@ -741,6 +741,7 @@ void Task2code( void * pvParameters ){
       Serial.println(song_to_sing.lyrics_len);
       Serial.print("placeholder val");
       Serial.println(song_id);
+      tft.fillRect(10, SCREEN_HEIGHT-70, i * (128-20) / file_count, 20, GREEN);
       delay(50);
     } 
     Serial.println(song_to_sing.lyrics_len);
@@ -993,6 +994,7 @@ void play_karaoke_game() {
       tft.println("Getting your");
       tft.setCursor(45, 48, 2);
       tft.println("score...");
+      tft.drawRect(10, SCREEN_HEIGHT-70, 108, 20, WHITE);
     }
       else if (song_index == 0) {
       Serial.println("Start music!");
