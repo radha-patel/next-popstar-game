@@ -7,6 +7,8 @@
 #include "FS.h"
 #include "SD.h"
 
+TaskHandle_t Task1;
+TaskHandle_t Task2;
 
 TFT_eSPI tft = TFT_eSPI();
 
@@ -47,8 +49,10 @@ uint32_t timer;
 
 char message_buffer[15000] = "";
 
+int lyric_index = 0;
+
 //Some constants and some resources:
-const int RESPONSE_TIMEOUT = 20000; //ms to wait for response from host
+const int RESPONSE_TIMEOUT = 100000000000; //ms to wait for response from host
 const uint16_t OUT_BUFFER_SIZE = 1000; //size of buffer to hold HTTP response
 char old_response[OUT_BUFFER_SIZE]; //char array buffer to hold HTTP request
 char response[OUT_BUFFER_SIZE]; //char array buffer to hold HTTP request
@@ -56,8 +60,8 @@ char response[OUT_BUFFER_SIZE]; //char array buffer to hold HTTP request
 int file_count = 0;
 int record_state = 0;
 //int song_length = 109335; // stereo as example, 656 * 166.67
-int song_length = 30000; // test length (about 4 measures of stereo)
-//int song_length = 21334; // 8 measures is 21334
+//int song_length = 3000; // test length (about 4 measures of stereo)
+int song_length = 21334 * 2; // 8 measures is 21334
 
 void post_audio(char * message, int message_len) {
   Serial.println("Posting to Server:");      
@@ -77,6 +81,28 @@ void get_fft(char * user) {
 
   do_http_request("608dev-2.net", request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
 }
+struct Riff {
+  double notes[1500]; //the notes (array of doubles containing frequencies in Hz. I used https://pages.mtu.edu/~suits/notefreqs.html
+  int length; //number of notes (essentially length of array.
+  float note_period; //the timing of each note in milliseconds (take bpm, scale appropriately for note (sixteenth note would be 4 since four per quarter note) then
+};
+
+Riff song_to_play = {{}, 656, 166.67};
+char *lyrics_stereo[7] = {"My heart's a stereo", "It beats for your, so listen close", "Hear my thoughts in every note", "Make me your radio", "Turn me up when you feel low", "This melody was meant for you", "Just sing along to my stereo..." };
+const int BUTTON_PIN = 3;
+int song_state = 0;
+int song_index = 0;
+uint32_t song_timer;
+
+uint8_t AUDIO_TRANSDUCER = 26;
+uint8_t AUDIO_PWM = 1;
+
+//global variables to help your code remember what the last note was to prevent double-playing a note which can cause audible clicking
+float new_note = 0;
+float old_note = 0;
+char freq_buffer[100];
+
+int game_end = 0;
 
 void setup() {
   Serial.begin(115200);               // Set up serial port
@@ -84,16 +110,47 @@ void setup() {
   pinMode(PIN_1, INPUT_PULLUP);
   pinMode(PIN_2, INPUT_PULLUP);
 
-      if(!SD.begin()){
-        Serial.println("Card Mount Failed");
-        return;
-    }
-    uint8_t cardType = SD.cardType();
+  tft.init();
+  tft.setRotation(2);
+//  primary_timer = millis();
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
 
-    if(cardType == CARD_NONE){
-        Serial.println("No SD card attached");
-        return;
-    }
+
+  //create a task that will be executed in the Task1code() function, with priority 1 and executed on core 0
+  xTaskCreatePinnedToCore(
+                    Task1code,   /* Task function. */
+                    "Task1",     /* name of task. */
+                    10000,       /* Stack size of task */
+                    NULL,        /* parameter of the task */
+                    1,           /* priority of the task */
+                    &Task1,      /* Task handle to keep track of created task */
+                    0);          /* pin task to core 0 */                  
+  delay(500); 
+
+  //create a task that will be executed in the Task2code() function, with priority 1 and executed on core 1
+  xTaskCreatePinnedToCore(
+                    Task2code,   /* Task function. */
+                    "Task2",     /* name of task. */
+                    10000,       /* Stack size of task */
+                    NULL,        /* parameter of the task */
+                    1,           /* priority of the task */
+                    &Task2,      /* Task handle to keep track of created task */
+                    1);          /* pin task to core 1 */
+    delay(500); 
+
+
+
+  if(!SD.begin()){
+    Serial.println("Card Mount Failed");
+    return;
+  }
+  uint8_t cardType = SD.cardType();
+
+  if(cardType == CARD_NONE){
+    Serial.println("No SD card attached");
+    return;
+  }
 
     Serial.print("SD Card Type: ");
     if(cardType == CARD_MMC){
@@ -134,13 +191,111 @@ WiFi.begin(network, password); //attempt to connect to wifi
   delay(50);
   Wire.begin();
   delay(50); 
+    readFile(SD, "/stereo.txt", message_buffer);
+    Serial.println(message_buffer);
+    listDir(SD, "/", 0);
+    Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
+    Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
+    double_extractor(message_buffer, song_to_play.notes, ',');
+
+    // set up pins
+    pinMode(BUTTON_PIN, INPUT_PULLUP);
+    pinMode(AUDIO_TRANSDUCER, OUTPUT);
+  
+    //set up AUDIO_PWM_1 which we will control in this lab for music:
+    ledcSetup(AUDIO_PWM, 0, 12);//12 bits of PWM precision
+    ledcWrite(AUDIO_PWM, 0); //0 is a 0% duty cycle for the NFET
+    ledcAttachPin(AUDIO_TRANSDUCER, AUDIO_PWM);
+
+
+  song_timer = millis();
+  song_state = 0;
+  
   timer = millis();
   old_val = digitalRead(PIN_1);
+
+  
 }
 
-//main body of code
-void loop() {
-  button_state = digitalRead(PIN_1);
+//Task1code: blinks an LED every 1000 ms
+void Task1code( void * pvParameters ){
+  Serial.print("Task1 running on core ");
+  Serial.println(xPortGetCoreID());
+
+  for(;;){
+  if (!digitalRead(BUTTON_PIN)) {
+    song_state = 1;
+    song_timer = millis();
+  }
+  // music playing section
+  if (song_state){
+   if (song_index == 0) {
+      Serial.println("Start music!");
+      ledcWriteTone(AUDIO_PWM, song_to_play.notes[song_index]);
+      song_index++;
+      } 
+      if (millis() - song_timer >= song_index * song_to_play.note_period) { // time to switch to the next note
+        if (song_index == song_to_play.length) { // end of song
+          ledcWriteTone(AUDIO_PWM, 0);
+          song_state = 0; 
+          song_index = 0;
+          game_end = true;
+        } else if (song_to_play.notes[song_index] != song_to_play.notes[song_index-1]) { // note change
+          ledcWriteTone(AUDIO_PWM, song_to_play.notes[song_index]);
+          song_index ++;
+        } else song_index++; // otherwise increment index 
+        if ((song_index-1)%16 == 0) {
+          Serial.println(song_index);
+          tft.fillScreen(TFT_BLACK);
+          tft.setCursor(17, 89, 1);
+          tft.println(lyrics_stereo[lyric_index]);
+          if (lyric_index < 7) {
+            lyric_index++;
+  
+          }
+        }
+      }
+  }
+  delay(50);
+  } 
+}
+
+void play_lyrics() {
+  if (song_index == 0) {
+      Serial.println("Start music!");
+      ledcWriteTone(AUDIO_PWM, song_to_play.notes[song_index]);
+      song_index++;
+      } 
+      if (millis() - song_timer >= song_index * song_to_play.note_period) { // time to switch to the next note
+        if (song_index == song_to_play.length) { // end of song
+          ledcWriteTone(AUDIO_PWM, 0);
+          song_state = 0; 
+          song_index = 0;
+          game_end = true;
+        } else if (song_to_play.notes[song_index] != song_to_play.notes[song_index-1]) { // note change
+          ledcWriteTone(AUDIO_PWM, song_to_play.notes[song_index]);
+          song_index ++;
+        } else song_index++; // otherwise increment index 
+        if ((song_index-1)%16 == 0) {
+          Serial.println(song_index);
+          tft.fillScreen(TFT_BLACK);
+          tft.setCursor(17, 89, 1);
+          tft.println(lyrics_stereo[lyric_index]);
+          if (lyric_index < 7) {
+            lyric_index++;
+  
+          }
+        }
+      }
+    
+  }
+
+//Task2code: blinks an LED every 700 ms
+void Task2code( void * pvParameters ){
+  Serial.print("Task2 running on core ");
+  Serial.println(xPortGetCoreID());
+  for (;;) {
+    button_state = digitalRead(PIN_1);
   if (!button_state) record_state = 1;
   if (record_state == 1) { // recording state
     timer = millis();
@@ -177,6 +332,14 @@ void loop() {
 //    post_audio(message_buffer);
 //    }
   old_button_state = button_state;
+  delay(50);
+  }
+
+  }
+
+//main body of code
+void loop() {
+  
 }
 
 //function used to record audio at sample rate for a fixed nmber of samples
