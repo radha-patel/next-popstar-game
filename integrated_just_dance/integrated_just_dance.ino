@@ -47,6 +47,7 @@ int bounce_state = 0; // Move 4
 int sprinkler_state = 0; // Move 5
 int arm_cross_state = 0; // Move 6
 int disco_state = 0; // Move 7
+int clap_state = 0; // Move 8
 int move_iter = 0;
 
 // Game state variables
@@ -119,16 +120,16 @@ Choreo stereo_advanced = {
 };
 
 // PUNCH (8), HAND ROLL (8), WAVE (8), BOUNCE (16), SPRINKLER (8), ARM CROSS (12), DISCO (16)
+//Choreo riptide_basic = {
+//  7, {1, 2, 3, 4, 5, 6, 7}, {16, 16, 16, 16, 16, 32, 23}, {8, 8, 8, 16, 8, 12, 16}
+//};
+
 Choreo riptide_basic = {
-  7, {1, 2, 3, 4, 5, 6, 7}, {16, 16, 16, 16, 16, 32, 25}, {8, 8, 8, 16, 8, 12, 16}
+  1, {7}, {556 / 4}, {1}
 };
 
 Choreo stereo_easy = {
-  1, {1}, {656 / 4}, {1}
-};
-
-Choreo riptide_easy = {
-  1, {2}, {656 / 4 - 30}, {1}
+  1, {7}, {656 / 4}, {1}
 };
 
 Choreo havana_easy = {
@@ -769,8 +770,8 @@ void play_long_song() {
 }
 
 void play_just_dance() {
-//  Serial.println(millis() - song_timer);
-//  Serial.println(dance_time);
+  Serial.println(millis() - song_timer);
+  Serial.println(dance_time);
   if (step_num < dance_to_play.steps && millis() - song_timer > dance_time) {
       int result = similarity_score(dance_to_play.counts[step_num], move_iter);
       Serial.println(step_num);
@@ -784,7 +785,6 @@ void play_just_dance() {
     } else if (step_num == dance_to_play.steps) { // reset all values, enter game end state
       Serial.println("End dance!");
       game_end = true;
-      song_state = 0;
       new_move = true;
       begin_dance = false;
       begin_rhythm = false;
@@ -813,6 +813,10 @@ void play_just_dance() {
           song_index ++;
         } else song_index++; // otherwise increment index 
       }
+
+    if (end_screen) {
+      ledcWriteTone(AUDIO_PWM, 0);
+    }
   
     if (dance_to_play.moves[step_num] == 1) {
       if (new_move) {
