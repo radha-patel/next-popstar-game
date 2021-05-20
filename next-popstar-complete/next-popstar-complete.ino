@@ -741,7 +741,7 @@ void Task2code( void * pvParameters ){
       Serial.println(song_to_sing.lyrics_len);
       Serial.print("placeholder val");
       Serial.println(song_id);
-      tft.fillRect(10, SCREEN_HEIGHT-70, i * (128-20) / file_count, 20, GREEN);
+      tft.fillRect(11, SCREEN_HEIGHT-69, i * (128-20) / file_count, 18, GREEN);
       delay(50);
     } 
     Serial.println(song_to_sing.lyrics_len);
