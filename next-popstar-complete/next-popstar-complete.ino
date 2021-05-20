@@ -56,6 +56,9 @@ int bounce_state = 0; // Move 4
 int sprinkler_state = 0; // Move 5
 int arm_cross_state = 0; // Move 6
 int disco_state = 0; // Move 7
+int clap_state = 0; // Move 8
+int fist_pump_state = 0; // Move 9
+int arm_press_state = 0; // Move 9
 int move_iter = 0;
 
 // Game state variables
@@ -153,47 +156,23 @@ struct Choreo {
   int counts[20]; // number of iterations of each move
 };
 
-// BOUNCE (8), HAND ROLL (8), PUNCH (8), SPRINKLER (8)
-Choreo stereo_basic = {
-  4, {4, 2, 1, 5}, {8, 8, 8, 8}, {8, 8, 8, 8}
-};
-
-// HAND ROLL (4), DISCO (2), PUNCH (4), WAVE (4), SPRINKLER (4), ARM CROSS (2)
-Choreo stereo_advanced = {
-  6, {2, 7, 1, 3, 5, 6}, {4, 4, 8, 8, 4, 4}, {4, 2, 4, 4, 4, 2}
-};
-
-// PUNCH (8), HAND ROLL (8), WAVE (8), BOUNCE (16), SPRINKLER (8), ARM CROSS (12), DISCO (16)
 Choreo riptide_basic = {
-  7, {1, 2, 3, 4, 5, 6, 7}, {16, 16, 16, 16, 16, 32, 25}, {8, 8, 8, 16, 8, 12, 16}
+  7, {1, 2, 3, 4, 5, 6, 7}, {16, 16, 16, 16, 16, 32, 23}, {8, 8, 8, 16, 8, 12, 16}
 };
 
 Choreo stereo_easy = {
-  1, {1}, {656 / 4}, {1}
-};
-
-Choreo riptide_easy = {
-  1, {2}, {656 / 4 - 30}, {1}
+  20, {3, 1, 3, 2, 6, 5, 6, 7, 4, 8, 2, 6, 2, 9, 3, 1, 6, 5, 4, 10}, {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8}, {4, 4, 4, 4, 4, 8, 4, 4, 8, 4, 4, 4, 4, 4, 4, 4, 4, 8, 8, 4}
 };
 
 Choreo havana_easy = {
-  1, {2}, {400 / 4}, {1}
+  14, {4, 2, 6, 9, 6, 4, 2, 6, 9, 1, 3, 10, 5, 7}, {3, 8, 8, 8, 4, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8}, {3, 4, 4, 8, 2, 4, 4, 4, 8, 4, 4, 4, 8, 4}
 };
 
 Choreo shake_easy = {
-  1, {2}, {656 / 4}, {1}
+  7, {8, 1, 5, 6, 2, 7, 9}, {26, 16, 16, 16, 16, 16, 16}, {12, 4, 8, 4, 4, 4, 4}
 };
 
 uint32_t song_timer;
-
-//Riff stereo = {{0, 0, 0, 0, 880.0, 880.0, 880.0, 880.0, 830.61, 830.61, 739.99, 659.25, 659.25, 587.33, 587.33, 554.37, 
-//    554.37, 554.37, 554.37, 440, 659.25, 659.25, 739.99, 659.25, 659.25, 587.33, 587.33, 554.37, 554.37, 493.88, 493.88, 
-//    554.37, 554.37, 554.37, 554.37, 440, 659.25, 659.25, 739.99, 659.25, 659.25, 587.33, 587.33, 554.37, 554.37, 493.88, 
-//    493.88, 554.37, 554.37, 554.37, 554.37, 554.37, 659.25, 659.25, 493.88, 493.88, 493.88, 493.88, 493.88, 493.88, 0, 0, 0, 0, 
-//    0, 0, 0, 0, 880.0, 880.0, 880.0, 880.0, 830.61, 830.61, 739.99, 659.25, 659.25, 587.33, 587.33, 554.37, 554.37, 554.37, 554.37, 
-//    440, 659.25, 659.25, 739.99, 659.25, 659.25, 587.33, 587.33, 554.37, 554.37, 493.88, 493.88, 554.37, 554.37, 554.37, 554.37, 440, 
-//    659.25, 659.25, 739.99, 659.25, 659.25, 587.33, 587.33, 554.37, 554.37, 493.88, 493.88, 554.37, 554.37, 554.37, 554.37, 440, 
-//    659.25, 739.99, 739.99, 659.25, 659.25, 659.25, 554.37, 554.37, 554.37, 493.88, 440, 440}, 128, 128, 166.67};
 
 Riff riptide = {{466.16, 466.16, 523.25, 523.25, 554.37, 554.37, 622.25, 698.46, 698.46, 698.46, 932.33, 932.33, 830.61, 
 830.61, 739.99, 698.46, 698.46, 698.46, 698.46, 698.46, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 466.16, 466.16, 523.25, 523.25, 
@@ -241,7 +220,7 @@ Riff stereo_long = {{}, 656, 166.67};
 Riff riptide_long = {{}, 656, 150};
 
 Riff song_to_play = stereo;
-Choreo dance_to_play = stereo_basic;
+Choreo dance_to_play = stereo_easy;
 Lyrics song_to_sing = stereo_lyrics;
 
 const uint32_t READING_PERIOD = 150; //milliseconds
@@ -640,17 +619,6 @@ void setup() {
   } else {
       Serial.println("UNKNOWN");
   }
-//
-//  uint64_t cardSize = SD.cardSize() / (1024 * 1024);
-//  Serial.printf("SD Card Size: %lluMB\n", cardSize);
-////    writeFile(SD, "/toy_internal.txt", "440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440,440");
-////  readFile(SD, "/stereo.txt");
-//  Serial.println(message_buffer);
-//  listDir(SD, "/", 0);
-//  Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
-//  Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
-//  double_extractor(message_buffer, long_song_to_play.notes, ',');
-
 
   pinMode(BUTTON1, INPUT_PULLUP);
   pinMode(BUTTON2, INPUT_PULLUP);
@@ -803,9 +771,7 @@ void read_accel() {
 
 //void post_score(int score) {
 void post_score(char* thing) {
-  Serial.println("the game ended!");
-  //char thing[500];
-  //sprintf(thing, "user=%s&justdance=%i&rhythm=0&karaoke=0", user, score);      
+  Serial.println("the game ended!");     
   sprintf(request, "POST http://608dev-2.net/sandbox/sc/team64/scoreboard.py HTTP/1.1\r\n");
   sprintf(request + strlen(request), "Host: %s\r\n", host);
   strcat(request, "Content-Type: application/x-www-form-urlencoded\r\n");
@@ -832,10 +798,16 @@ int similarity_score(int correct, int actual) {
 }
 
 void reset_dance_states() {
-  punch_state = 0;
-  hand_roll_state = 0;
-  wave_state = 0;
-  bounce_state = 0;
+  punch_state = 0; // Move 1
+  hand_roll_state = 0; // Move 2
+  wave_state = 0; // Move 3
+  bounce_state = 0; // Move 4
+  sprinkler_state = 0; // Move 5
+  arm_cross_state = 0; // Move 6
+  disco_state = 0; // Move 7
+  clap_state = 0; // Move 8
+  fist_pump_state = 0; // Move 9
+  arm_press_state = 0; // Move 9
   move_iter = 0;
 }
 
@@ -869,44 +841,10 @@ void add_stars(int result) {
   }
 }
 
-void play_long_song() {
-  if (!digitalRead(BUTTON4)) {
-    play_song = 1;
-    Serial.println("line 1");
-    readFile(SD, "/stereo.txt");
-    Serial.println("line 2");
-    double_extractor(message_buffer, long_song_to_play.notes, ',');
-    Serial.println("line 3");
-  }
-  // music playing section
-  if (play_song){
-   if (song_index == 0) {
-    Serial.println("Start music!");
-    Serial.println(long_song_to_play.notes[song_index]);
-    ledcWriteTone(AUDIO_PWM, long_song_to_play.notes[song_index]);
-    song_index++;
-    song_timer = millis();
-    } 
-    if (millis() - song_timer >= song_index * long_song_to_play.note_period) { // time to switch to the next note
-      if (song_index == long_song_to_play.length) { // end of song
-        ledcWriteTone(AUDIO_PWM, 0);
-        play_song = 0; 
-        song_index = 0;
-      } else if (long_song_to_play.notes[song_index] != long_song_to_play.notes[song_index-1]) { // note change
-      Serial.print(song_index);
-      Serial.print(":");
-      Serial.println(long_song_to_play.notes[song_index]);
-      ledcWriteTone(AUDIO_PWM, long_song_to_play.notes[song_index]);
-      song_index ++;
-      } else song_index++; // otherwise increment index 
-    } 
-  }
-}
-
 void play_just_dance() {
 //  Serial.println(millis() - song_timer);
 //  Serial.println(dance_time);
-  if (step_num < dance_to_play.steps && millis() - song_timer > dance_time) {
+   if (step_num < dance_to_play.steps && millis() - song_timer > dance_time) {
       int result = similarity_score(dance_to_play.counts[step_num], move_iter);
       Serial.println(step_num);
       new_move = true;
@@ -919,7 +857,6 @@ void play_just_dance() {
     } else if (step_num == dance_to_play.steps) { // reset all values, enter game end state
       Serial.println("End dance!");
       game_end = true;
-      song_state = 0;
       new_move = true;
       begin_dance = false;
       begin_rhythm = false;
@@ -929,6 +866,7 @@ void play_just_dance() {
       song_index = 0;
       ledcWriteTone(AUDIO_PWM, 0);
       just_dance_end();
+      return;
     }
 
     // music playing section
@@ -936,21 +874,27 @@ void play_just_dance() {
       Serial.println("Start music!");
       ledcWriteTone(AUDIO_PWM, song_to_play.notes[song_index]);
       song_index++;
-      } 
-      if (millis() - song_timer >= song_index * song_to_play.note_period) { // time to switch to the next note
-        if (song_index == song_to_play.length) { // end of song
-          Serial.println("End music!");
-          ledcWriteTone(AUDIO_PWM, 0);
-          song_state = 0; 
-          song_index = 0;
-        } else if (song_to_play.notes[song_index] != song_to_play.notes[song_index-1]) { // note change
-          ledcWriteTone(AUDIO_PWM, song_to_play.notes[song_index]);
-          song_index ++;
-        } else song_index++; // otherwise increment index 
-      }
-  
+    } 
+    if (millis() - song_timer >= song_index * song_to_play.note_period) { // time to switch to the next note
+      if (song_index == song_to_play.length) { // end of song
+        Serial.println("End music!");
+        ledcWriteTone(AUDIO_PWM, 0);
+        song_state = 0; 
+        song_index = 0;
+      } else if (song_to_play.notes[song_index] != song_to_play.notes[song_index-1]) { // note change
+        ledcWriteTone(AUDIO_PWM, song_to_play.notes[song_index]);
+        song_index ++;
+      } else song_index++; // otherwise increment index 
+    }
+
+    if (end_screen) {
+      ledcWriteTone(AUDIO_PWM, 0);
+    }
+
+    Serial.println(step_num);
     if (dance_to_play.moves[step_num] == 1) {
       if (new_move) {
+        reset_dance_states();
         sprintf(individual_scores, "%s%s", individual_scores, "Punch");
         Serial.println(individual_scores);
         new_move = false;
@@ -958,6 +902,7 @@ void play_just_dance() {
       punch();
     } else if (dance_to_play.moves[step_num] == 2) {
       if (new_move) {
+        reset_dance_states();
         sprintf(individual_scores, "%s%s", individual_scores, "Hand Roll");
         Serial.println(individual_scores);
         new_move = false;
@@ -965,6 +910,7 @@ void play_just_dance() {
       hand_roll();
     } else if (dance_to_play.moves[step_num] == 3) {
       if (new_move) {
+        reset_dance_states();
         sprintf(individual_scores, "%s%s", individual_scores, "Wave");
         Serial.println(individual_scores);
         new_move = false;
@@ -972,6 +918,7 @@ void play_just_dance() {
       wave();
     } else if (dance_to_play.moves[step_num] == 4) {
       if (new_move) {
+        reset_dance_states();
         sprintf(individual_scores, "%s%s", individual_scores, "Bounce");
         Serial.println(individual_scores);
         new_move = false;
@@ -979,6 +926,7 @@ void play_just_dance() {
       bounce();
     } else if (dance_to_play.moves[step_num] == 5) {
       if (new_move) {
+        reset_dance_states();
         sprintf(individual_scores, "%s%s", individual_scores, "Sprinkler");
         Serial.println(individual_scores);
         new_move = false;
@@ -986,6 +934,7 @@ void play_just_dance() {
       sprinkler();
     } else if (dance_to_play.moves[step_num] == 6) {
       if (new_move) {
+        reset_dance_states();
         sprintf(individual_scores, "%s%s", individual_scores, "Arm Cross");
         Serial.println(individual_scores);
         new_move = false;
@@ -993,11 +942,36 @@ void play_just_dance() {
       arm_cross();
     } else if (dance_to_play.moves[step_num] == 7) {
       if (new_move) {
+        reset_dance_states();
         sprintf(individual_scores, "%s%s", individual_scores, "Disco");
         Serial.println(individual_scores);
         new_move = false;
       }
       disco();
+    } else if (dance_to_play.moves[step_num] == 8) {
+      if (new_move) {
+        reset_dance_states();
+        sprintf(individual_scores, "%s%s", individual_scores, "Clap");
+        Serial.println(individual_scores);
+        new_move = false;
+      }
+      clap();
+    } else if (dance_to_play.moves[step_num] == 9) {
+      if (new_move) {
+        reset_dance_states();
+        sprintf(individual_scores, "%s%s", individual_scores, "Fist Pump");
+        Serial.println(individual_scores);
+        new_move = false;
+      }
+      fist_pump();
+    } else if (dance_to_play.moves[step_num] == 10) {
+      if (new_move) {
+        reset_dance_states();
+        sprintf(individual_scores, "%s%s", individual_scores, "Arm Press");
+        Serial.println(individual_scores);
+        new_move = false;
+      }
+      arm_press();
     }
 }
 
@@ -1055,8 +1029,6 @@ void play_karaoke_game() {
       }
 }
 
-
-
 void play_rhythm_game() {
   //tft.drawString("Insert rhythm game", 10, 60, 1);
   //delay(3000);
@@ -1108,64 +1080,4 @@ void play_rhythm_game() {
   
   while (millis() - primary_timer < LOOP_PERIOD);
   primary_timer = millis();
-}
-
-//function used to record audio at sample rate for a fixed nmber of samples
-void record_audio(int * index) {
-  int sample_num = 0;    // counter for samples
-  int enc_index = 0;  // index counter for encoded samples
-  float time_between_samples = 1000000 / SAMPLE_FREQ;
-  int value = 0;
-  char raw_samples[3];   // 8-bit raw sample data array
-  memset(speech_data, 0, sizeof(speech_data));
-  char holder[5] = {0};
-  Serial.println("starting");
-  uint32_t text_index = enc_index;
-  uint32_t start = millis();
-  time_since_sample = micros();
-  while (sample_num < NUM_SAMPLES) { //read in NUM_SAMPLES worth of audio data
-//    button_state = digitalRead(PIN_1);
-//    if (button_state) break;
-    value = analogRead(AUDIO_IN);  //make measurement
-    raw_samples[sample_num % 3] = mulaw_encode(value - 1551); //remove 1.25V offset (from 12 bit reading)
-    sample_num++;
-    if (sample_num % 3 == 0) {
-      base64_encode(holder, raw_samples, 3);
-      strncat(speech_data + text_index, holder, 4);
-      text_index += 4;
-    }
-    // wait till next time to read
-    while (micros() - time_since_sample <= time_between_samples); //wait...
-    time_since_sample = micros();
-  }
-  Serial.println(millis() - start);
-  int len = strlen(speech_data);
-  char file_name[50] = "";
-  sprintf(file_name, "/audio%i.txt", *index);
-  Serial.println(len);
-  writeFile(SD, file_name, speech_data);
-  Serial.println("out");
-  *index = *index + 1;
-}
-
-void post_audio(char * message, int message_len) {
-  Serial.println("Posting to Server:");      
-  sprintf(request, "POST http://608dev-2.net/sandbox/sc/team64/karaoke_server_withdb.py HTTP/1.1\r\n");
-  sprintf(request + strlen(request), "Host: %s\r\n", host);
-  strcat(request, "Content-Type: application/x-www-form-urlencoded\r\n");
-  sprintf(request + strlen(request), "Content-Length: %d\r\n\r\nuser=test&audio=", message_len);
-  strcat(request, message);
-//  Serial.println(request);
-  do_http_request("608dev-2.net", request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
-}
-
-void get_fft(char * user, float * score, char * song_title) {
-  sprintf(request, "GET /sandbox/sc/team64/karaoke_server_withdb.py?song=%s&user=%s HTTP/1.1\r\n", song_title, user);
-  strcat(request, "Host: 608dev-2.net\r\n");
-  strcat(request, "\r\n"); //new line from header to body
-
-  Serial.println(request);
-
-  do_http_request("608dev-2.net", request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
-  *score = atof(response);
 }
