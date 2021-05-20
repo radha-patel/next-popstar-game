@@ -48,6 +48,8 @@ int sprinkler_state = 0; // Move 5
 int arm_cross_state = 0; // Move 6
 int disco_state = 0; // Move 7
 int clap_state = 0; // Move 8
+int fist_pump_state = 0; // Move 9
+int arm_press_state = 0; // Move 9
 int move_iter = 0;
 
 // Game state variables
@@ -129,7 +131,7 @@ Choreo riptide_basic = {
 };
 
 Choreo stereo_easy = {
-  1, {7}, {656 / 4}, {1}
+  1, {10}, {656 / 4}, {4}
 };
 
 Choreo havana_easy = {
@@ -867,6 +869,27 @@ void play_just_dance() {
         new_move = false;
       }
       disco();
+    } else if (dance_to_play.moves[step_num] == 8) {
+      if (new_move) {
+        sprintf(individual_scores, "%s%s", individual_scores, "Clap");
+        Serial.println(individual_scores);
+        new_move = false;
+      }
+      clap();
+    } else if (dance_to_play.moves[step_num] == 9) {
+      if (new_move) {
+        sprintf(individual_scores, "%s%s", individual_scores, "Fist Pump");
+        Serial.println(individual_scores);
+        new_move = false;
+      }
+      fist_pump();
+    } else if (dance_to_play.moves[step_num] == 10) {
+      if (new_move) {
+        sprintf(individual_scores, "%s%s", individual_scores, "Arm Press");
+        Serial.println(individual_scores);
+        new_move = false;
+      }
+      arm_press();
     }
 }
 
