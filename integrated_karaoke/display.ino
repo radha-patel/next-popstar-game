@@ -94,7 +94,7 @@ void karaoke_end() {
   tft.drawString("Total Score:", 25, 30, 2);
   char score[8];
   sprintf(score, "%.2f%%", karaoke_score);
-  tft.drawString(score, 50, 45, 2);
+  tft.drawString(score, 45, 45, 2);
 
   tft.drawRect(14, 130, 100, 20, ST7735_GREEN);
   tft.drawString("Home Screen", 30, 136, 1);
@@ -232,6 +232,7 @@ void select_song(int button) {
           dance_to_play = stereo_easy;
           map_to_play = stereo_map;
           song_to_sing = stereo_lyrics;
+          sprintf(song_title, "%s", "stereo");
           tft.drawString(output, 8, 66, 1);
         } else if (selected_song == 1) { // Riptide
           Serial.println("song 2");
@@ -240,6 +241,7 @@ void select_song(int button) {
           dance_to_play = riptide_basic;
           map_to_play = riptide_map;
           song_to_sing = riptide_lyrics;
+          sprintf(song_title, "%s", "riptide");
           tft.drawString(output, 24, 66, 1);
 //        } else if (selected_song == 2) { // Long Stereo Hearts
 //          tempo = 90;
@@ -257,6 +259,7 @@ void select_song(int button) {
           dance_to_play = shake_easy;
           map_to_play = shake_map;
           song_to_sing = shake_lyrics;
+          sprintf(song_title, "%s", "shake");
           tft.drawString(output, 9, 66, 1);
         } else if (selected_song == 3) { // Havana
           tempo = 105;
@@ -264,6 +267,7 @@ void select_song(int button) {
           dance_to_play = havana_easy;
           map_to_play = havana_map;
           song_to_sing = havana_lyrics;
+          sprintf(song_title, "%s", "havana");
           tft.drawString(output, 25, 66, 1);
         }
         tft.setTextColor(TFT_WHITE, TFT_BLACK);

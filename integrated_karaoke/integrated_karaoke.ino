@@ -117,12 +117,13 @@ struct Riff {
 };
 
 struct Lyrics {
+  char title[50];
   char *lyrics[40]; // lyrics to the song
   int lyrics_len;
 };
 
-Lyrics stereo_lyrics = {{"My heart's a stereo", "It beats for you, so listen close", "Hear my thoughts in every note", "Oh-oh", "Make me your radio", "Turn me up when you feel low", "This melody was meant for you", "Just sing along to my stereo" }, 8};
-Lyrics shake_lyrics = {{"I stay out too", "late", "Got nothing in my", "brain",
+Lyrics stereo_lyrics = {"stereo", {"My heart's a stereo", "It beats for you, so listen close", "Hear my thoughts in every note", "Oh-oh", "Make me your radio", "Turn me up when you feel low", "This melody was meant for you", "Just sing along to my stereo" }, 8};
+Lyrics shake_lyrics = {"shake", {"I stay out too", "late", "Got nothing in my", "brain",
 "That's what people", "say, mmm-", "mmm, That's what people",
 "say, mmm-", "mmm, I got on too many", "dates, ha ha", "But I can't make them", 
 "stay,", "At least that's what people", "say, mmm-", "mmm, That's what people",
@@ -131,10 +132,10 @@ Lyrics shake_lyrics = {{"I stay out too", "late", "Got nothing in my", "brain",
 "'Cause the", "Players gonna play, play", "play, play, play, and the",
 "haters gonna hate, hate,", "hate, hate, hate, Baby", "I'm just gonna shake, shake,",
 "shake, shake, shake, I", "shake if off, I shake it", "off"}, 33};
-Lyrics havana_lyrics = {{"Havana", "ooh na- na, ay,", "Half of my heart is in", "Havana ooh na na, ay", 
+Lyrics havana_lyrics = {"havana", {"Havana", "ooh na- na, ay,", "Half of my heart is in", "Havana ooh na na, ay", 
 "He took my back to East", "Atlanta, na- na- na, oh,", "but my heart is in Havana,",
 "There's something 'bout his", "manners, Havana ooh na na"}, 10};
-Lyrics riptide_lyrics = {{"I was scared of dentists and the", "dark,", "I was scared of pretty girls, and",
+Lyrics riptide_lyrics = {"riptide", {"I was scared of dentists and the", "dark,", "I was scared of pretty girls, and",
 "starting conversations,", "Oh all my friends are turning", "green, You're the", 
 "magician's assistant in their dreams", "Oh", "ooo-oooo-", "ooooh", "Oo-ooh, and", 
 "They come unstuck", "Lady, running down to the", "riptide, taken away to the", 
@@ -143,6 +144,7 @@ Lyrics riptide_lyrics = {{"I was scared of dentists and the", "dark,", "I was sc
 
 int lyric_index = 0;
 float karaoke_score = 0.00;
+char song_title[50] = "";
 
 struct Choreo {
   int steps; // number of steps in choreo
@@ -613,16 +615,6 @@ void setup() {
   primary_timer = millis();
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-  
-
-  pinMode(BUTTON1, INPUT_PULLUP);
-  pinMode(BUTTON2, INPUT_PULLUP);
-  pinMode(BUTTON3, INPUT_PULLUP);
-  pinMode(BUTTON4, INPUT_PULLUP);
-  pinMode(AUDIO_TRANSDUCER, OUTPUT);
-  pinMode(LCD_CONTROL, OUTPUT);
-  pinMode(R, OUTPUT);
-  pinMode(G, OUTPUT);
 
 //  SPIClass spi = SPIClass(VSPI);
 //  spi.begin(14, 19, 13, 5); // SCK, MISO, MOSI, CS
@@ -658,6 +650,16 @@ void setup() {
 //  Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
 //  Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
 //  double_extractor(message_buffer, long_song_to_play.notes, ',');
+
+
+  pinMode(BUTTON1, INPUT_PULLUP);
+  pinMode(BUTTON2, INPUT_PULLUP);
+  pinMode(BUTTON3, INPUT_PULLUP);
+  pinMode(BUTTON4, INPUT_PULLUP);
+  pinMode(AUDIO_TRANSDUCER, OUTPUT);
+  pinMode(LCD_CONTROL, OUTPUT);
+  pinMode(R, OUTPUT);
+  pinMode(G, OUTPUT);
 
   //set up AUDIO_PWM which we will control for music:
   ledcSetup(AUDIO_PWM, 0, 12);//12 bits of PWM precision
@@ -733,7 +735,7 @@ void Task1code( void * pvParameters ){
     reset_dance_states();
     new_move = true;
   }
-  delay(50);
+  delay(10);
 }
 }
 
@@ -763,7 +765,11 @@ void Task2code( void * pvParameters ){
       post_audio(message_buffer, message_len);
       delay(50);
     } 
-    get_fft("test", &karaoke_score);
+    if (song_to_sing.lyrics_len == 8) get_fft("test", &karaoke_score, "stereo");
+    else if (song_to_sing.lyrics_len == 10) get_fft("test", &karaoke_score, "havana");
+    else if (song_to_sing.lyrics_len == 21) get_fft("test", &karaoke_score, "riptide");
+    else if (song_to_sing.lyrics_len == 33) get_fft("test", &karaoke_score, "shake");
+    Serial.println(karaoke_score);
     record_state = 3; // set back to idle state
   } else if (record_state == 3) {
     karaoke_end();
@@ -995,10 +1001,13 @@ void play_karaoke_game() {
       step_num = 0;
       song_state = 0; 
       song_index = 0;
+      lyric_index = 0;
       ledcWriteTone(AUDIO_PWM, 0);
       tft.fillScreen(TFT_BLACK);
-      tft.setCursor(0, 0, 2);
-      tft.println("Getting your score...");
+      tft.setCursor(25, 30, 2);
+      tft.println("Getting your");
+      tft.setCursor(45, 48, 2);
+      tft.println("score...");
     }
       else if (song_index == 0) {
       Serial.println("Start music!");
@@ -1139,8 +1148,8 @@ void post_audio(char * message, int message_len) {
   do_http_request("608dev-2.net", request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
 }
 
-void get_fft(char * user, float * score) {
-  sprintf(request, "GET /sandbox/sc/team64/karaoke_server_withdb.py?song=stereo&user=%s HTTP/1.1\r\n", user);
+void get_fft(char * user, float * score, char * song_title) {
+  sprintf(request, "GET /sandbox/sc/team64/karaoke_server_withdb.py?song=%s&user=%s HTTP/1.1\r\n", song_title, user);
   strcat(request, "Host: 608dev-2.net\r\n");
   strcat(request, "\r\n"); //new line from header to body
 
