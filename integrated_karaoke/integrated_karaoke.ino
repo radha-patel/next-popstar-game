@@ -722,6 +722,7 @@ void Task1code( void * pvParameters ){
   if (game_end) { // POST state
     Serial.println("you made it to the end!");
     char thing[500];
+    Serial.println(karaoke_score);
     if (selected_game == 1) {
       sprintf(thing, "user=%s&justdance=%i&rhythm=0&karaoke=0", user, just_dance_total);
     } else if (selected_game == 2) {
@@ -743,10 +744,12 @@ void Task2code( void * pvParameters ){
   Serial.print("Task2 running on core ");
   Serial.println(xPortGetCoreID());
   for (;;) {
+  int song_id = song_to_sing.lyrics_len;
   if (record_state == 1) { // recording state
     timer = millis();
     file_count = 0;
     // do the timed recording here
+    Serial.println(song_to_sing.lyrics_len);
     while (millis() - timer < song_to_play.note_period * song_to_sing.lyrics_len * 16) {
       record_audio(&file_count);
       Serial.print("File index:");
@@ -755,6 +758,10 @@ void Task2code( void * pvParameters ){
     listDir(SD, "/", 0);
     record_state = 2; // switch to send state
   } else if (record_state == 2) {
+    Serial.print("File count: ");
+    Serial.println(file_count);
+    Serial.print("song to sing lyrics len: ");
+    Serial.println(song_to_sing.lyrics_len);
     for (int i = 0; i < file_count; i++) {
       // send each of the stored encoded files on the SD card to the server
       char file_name[50] = "";
@@ -763,12 +770,16 @@ void Task2code( void * pvParameters ){
       int message_len = strlen(message_buffer);
       message_len = message_len + 16;
       post_audio(message_buffer, message_len);
+      Serial.println(song_to_sing.lyrics_len);
+      Serial.print("placeholder val");
+      Serial.println(song_id);
       delay(50);
     } 
-    if (song_to_sing.lyrics_len == 8) get_fft("test", &karaoke_score, "stereo");
-    else if (song_to_sing.lyrics_len == 10) get_fft("test", &karaoke_score, "havana");
-    else if (song_to_sing.lyrics_len == 21) get_fft("test", &karaoke_score, "riptide");
-    else if (song_to_sing.lyrics_len == 33) get_fft("test", &karaoke_score, "shake");
+    Serial.println(song_to_sing.lyrics_len);
+    if (song_id == 8) get_fft("test", &karaoke_score, "stereo");
+    else if (song_id == 10) get_fft("test", &karaoke_score, "havana");
+    else if (song_id == 21) get_fft("test", &karaoke_score, "riptide");
+    else if (song_id == 33) get_fft("test", &karaoke_score, "shake");
     Serial.println(karaoke_score);
     record_state = 3; // set back to idle state
   } else if (record_state == 3) {
@@ -1152,6 +1163,8 @@ void get_fft(char * user, float * score, char * song_title) {
   sprintf(request, "GET /sandbox/sc/team64/karaoke_server_withdb.py?song=%s&user=%s HTTP/1.1\r\n", song_title, user);
   strcat(request, "Host: 608dev-2.net\r\n");
   strcat(request, "\r\n"); //new line from header to body
+
+  Serial.println(request);
 
   do_http_request("608dev-2.net", request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
   *score = atof(response);

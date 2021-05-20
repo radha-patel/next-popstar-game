@@ -99,7 +99,6 @@ void karaoke_end() {
   tft.drawRect(14, 130, 100, 20, ST7735_GREEN);
   tft.drawString("Home Screen", 30, 136, 1);
   end_screen = true;
-  post_state = 0;
 }
 
 void select_game(int button) {
