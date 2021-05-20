@@ -790,6 +790,8 @@ void play_just_dance() {
       begin_rhythm = false;
       begin_karaoke = false;
       step_num = 0;
+      song_state = 0; 
+      song_index = 0;
       ledcWriteTone(AUDIO_PWM, 0);
       just_dance_end();
     }
