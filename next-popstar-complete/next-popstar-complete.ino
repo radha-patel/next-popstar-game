@@ -236,10 +236,6 @@ uint8_t AUDIO_TRANSDUCER = 26;
 uint8_t LCD_PWM = 0;
 uint8_t AUDIO_PWM = 1;
 
-//global variables to help your code remember what the last note was to prevent double-playing a note which can cause audible clicking
-float new_note = 0;
-float old_note = 0;
-char freq_buffer[100];
 
 //Code for sending POST request at the end
 
@@ -351,7 +347,7 @@ class Note {
     int start_ind;     // which index in the song to hit the Note at
     bool active;       // true if Note is onscreen, false otherwise
     TFT_eSPI* local_tft;
-    int NOTE_CLR; // idk if you wanna have different colors. actually just check if any of the stuff below here is necessary
+    int NOTE_CLR;
     int BKGND_CLR;
     int RADIUS;
     int DT;
@@ -371,7 +367,7 @@ class Note {
         DT = dt;
         y = -RADIUS;
         v = 60;
-        g = 50; // prev 16 10 w/o loop period
+        g = 50;
     }
     void step() {
       if (active) {         // if Note is active: draw over previous position, calculate new position and draw there
@@ -651,8 +647,7 @@ void Task1code( void * pvParameters ){
   int bv = button.update();
   int b2 = button2.update();
   read_accel();
-//  play_long_song();
-  
+
 
   if (!username_selected) {
     get_username(b2);
@@ -692,7 +687,7 @@ void Task1code( void * pvParameters ){
       sprintf(thing, "user=%s&justdance=%f&rhythm=0&karaoke=0", user, percentage);
     } else if (selected_game == 2) {
       percentage = float(rhythm_score) / (100 * map_to_play.num_notes);
-      sprintf(thing, "user=%s&justdance=0&rhythm=%f&karaoke=0", user, percentage)
+      sprintf(thing, "user=%s&justdance=0&rhythm=%f&karaoke=0", user, percentage);
       rhythm_score = 0;
     } else if (selected_game == 3) {
       sprintf(thing, "user=%s&justdance=0&rhythm=0&karaoke=%f", user, karaoke_score);
@@ -706,6 +701,9 @@ void Task1code( void * pvParameters ){
 }
 }
 
+/*
+ * Gameplay for karaoke (recording audio portion) handled on second core
+*/
 void Task2code( void * pvParameters ){
   Serial.print("Task2 running on core ");
   Serial.println(xPortGetCoreID());
@@ -840,9 +838,11 @@ void add_stars(int result) {
   }
 }
 
+/*
+ * Drives gameplay for just dance. Plays music and goes through the Choreo struct to present the appropriate dance move.
+ * Handles appropriate state transitions upon song end.
+ */
 void play_just_dance() {
-//  Serial.println(millis() - song_timer);
-//  Serial.println(dance_time);
    if (step_num < dance_to_play.steps && millis() - song_timer > dance_time) {
       int result = similarity_score(dance_to_play.counts[step_num], move_iter);
       Serial.println(step_num);
@@ -974,6 +974,10 @@ void play_just_dance() {
     }
 }
 
+/*
+ * Part of gameplay for karaoke handled on first core. 
+ * Plays audio while displaying lyrics and handles appropriate state transitions.
+ */
 void play_karaoke_game() {
     if (lyric_index > song_to_sing.lyrics_len) { // reset all values, enter game end state
       Serial.println("End singing!");
@@ -1029,10 +1033,14 @@ void play_karaoke_game() {
       }
 }
 
+
+/*
+ * Drives gameplay for rhythm game. Goes through array of Notes for current songs and implements actions (falling, being hit) 
+ * for the ones that are currently active.
+ * Plays audio frequencies for the song and handles appropriate state transitions once the song/Riff reaches its end.
+ */
 void play_rhythm_game() {
-  //tft.drawString("Insert rhythm game", 10, 60, 1);
-  //delay(3000);
-  
+
   for (int i=0; i < map_to_play.num_notes; i++) {
     if (millis() - song_timer >= map_notes[i].start_ind*song_to_play.note_period - 1500 && 
         millis() - song_timer <= map_notes[i].start_ind*song_to_play.note_period + 200) { 
