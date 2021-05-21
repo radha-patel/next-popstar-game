@@ -56,7 +56,7 @@ void load_game() {
   
   if (selected_game == 2) {
     for (int i=0; i<map_to_play.num_notes; i++){ // initialize Note array
-      map_notes[i] = Note(&tft, map_to_play.actions[i], map_to_play.indices[i], 1, 0);
+      map_notes[i] = Note(&tft, map_to_play.actions[i], map_to_play.indices[i]);
     }
     song_timer = millis() + 1500;
   } else if (selected_game == 3) record_state = 1;
@@ -70,9 +70,10 @@ void just_dance_end() {
   tft.setCursor(0, 0);
   tft.setTextSize(1);
   tft.drawString("Total Score:", 25, 10, 2);
-  char score[5];
-  sprintf(score, "%d", just_dance_total);
-  tft.drawString(score, 56, 25, 2);
+  char score[10];
+  float percentage = float(just_dance_total) / (5 * dance_to_play.steps);
+  sprintf(score, "%.4f", percentage);
+  tft.drawString(score, 45, 25, 2);
   tft.setCursor(0, 50, 1); 
   tft.printf(individual_scores);
   tft.fillRect(0, 124, 114, 60, BLACK); 
@@ -87,9 +88,10 @@ void rhythm_end() {
   tft.setCursor(0, 0);
   tft.setTextSize(1);
   tft.drawString("Total Score:", 25, 30, 2);
-  char score[8];
-  sprintf(score, "%d", rhythm_score);
-  tft.drawString(score, 50, 45, 2);
+  char score[10];
+  float percentage = float(rhythm_score) / (100 * map_to_play.num_notes);
+  sprintf(score, "%.4f", percentage);
+  tft.drawString(score, 45, 45, 2);
 
   tft.drawRect(14, 130, 100, 20, ST7735_GREEN);
   tft.drawString("Home Screen", 30, 136, 1);
@@ -225,7 +227,7 @@ void select_song(int button) {
           Serial.println("song 1");
           tempo = 90;
           song_to_play = stereo;
-          dance_to_play = stereo_easy;
+          dance_to_play = stereo_dance;
           map_to_play = stereo_map;
           song_to_sing = stereo_lyrics;
           sprintf(song_title, "%s", "stereo");
@@ -234,7 +236,7 @@ void select_song(int button) {
           Serial.println("song 2");
           tempo = 100;
           song_to_play = riptide;
-          dance_to_play = riptide_basic;
+          dance_to_play = riptide_dance;
           map_to_play = riptide_map;
           song_to_sing = riptide_lyrics;
           sprintf(song_title, "%s", "riptide");
@@ -242,7 +244,7 @@ void select_song(int button) {
         } else if (selected_song == 2) { // Shake it Off
           tempo = 160;
           song_to_play = shake;
-          dance_to_play = shake_easy;
+          dance_to_play = shake_dance;
           map_to_play = shake_map;
           song_to_sing = shake_lyrics;
           sprintf(song_title, "%s", "shake");
@@ -250,7 +252,7 @@ void select_song(int button) {
         } else if (selected_song == 3) { // Havana
           tempo = 105;
           song_to_play = havana;
-          dance_to_play = havana_easy;
+          dance_to_play = havana_dance;
           map_to_play = havana_map;
           song_to_sing = havana_lyrics;
           sprintf(song_title, "%s", "havana");

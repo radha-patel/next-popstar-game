@@ -156,19 +156,19 @@ struct Choreo {
   int counts[20]; // number of iterations of each move
 };
 
-Choreo riptide_basic = {
+Choreo riptide_dance = {
   7, {1, 2, 3, 4, 5, 6, 7}, {16, 16, 16, 16, 16, 32, 23}, {8, 8, 8, 16, 8, 12, 16}
 };
 
-Choreo stereo_easy = {
+Choreo stereo_dance = {
   20, {3, 1, 3, 2, 6, 5, 6, 7, 4, 8, 2, 6, 2, 9, 3, 1, 6, 5, 4, 10}, {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8}, {4, 4, 4, 4, 4, 8, 4, 4, 8, 4, 4, 4, 4, 4, 4, 4, 4, 8, 8, 4}
 };
 
-Choreo havana_easy = {
+Choreo havana_dance = {
   14, {4, 2, 6, 9, 6, 4, 2, 6, 9, 1, 3, 10, 5, 7}, {3, 8, 8, 8, 4, 4, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8}, {3, 4, 4, 8, 2, 4, 4, 4, 8, 4, 4, 4, 8, 4}
 };
 
-Choreo shake_easy = {
+Choreo shake_dance = {
   7, {8, 1, 5, 6, 2, 7, 9}, {26, 16, 16, 16, 16, 16, 16}, {12, 4, 8, 4, 4, 4, 4}
 };
 
@@ -220,7 +220,7 @@ Riff stereo_long = {{}, 656, 166.67};
 Riff riptide_long = {{}, 656, 150};
 
 Riff song_to_play = stereo;
-Choreo dance_to_play = stereo_easy;
+Choreo dance_to_play = stereo_dance;
 Lyrics song_to_sing = stereo_lyrics;
 
 const uint32_t READING_PERIOD = 150; //milliseconds
@@ -348,25 +348,21 @@ Button buttons[4] = {button, button2, button3, button4};
 class Note {
   public:
     uint8_t action;    // which button (1, 2, 3, 4)
-    uint8_t type;      // short press vs hold. Currently unused; hold notes aren't implemented yet. implement later if there's time
-    uint32_t duration; // duration of hold note; also currently unused
-    int start_ind;
-    bool active;
+    int start_ind;     // which index in the song to hit the Note at
+    bool active;       // true if Note is onscreen, false otherwise
     TFT_eSPI* local_tft;
     int NOTE_CLR; // idk if you wanna have different colors. actually just check if any of the stuff below here is necessary
     int BKGND_CLR;
     int RADIUS;
     int DT;
-    float y;
+    float y;          // position, velocity, acceleration for Note movement
     float v;
     float g;
-    Note(TFT_eSPI* tft_to_use=&tft, uint8_t a=0, int start=0, uint8_t t=1, int d=0, int rad = 6, int dt=LOOP_PERIOD, 
-        int note_color = TFT_BLUE, int backgnd_color = TFT_BLACK) { // value of dt might be kinda sketch
+    Note(TFT_eSPI* tft_to_use=&tft, uint8_t a=0, int start=0, int rad = 6, int dt=LOOP_PERIOD, 
+        int note_color = TFT_BLUE, int backgnd_color = TFT_BLACK) {
           
         action = a;
-        type = t;
         start_ind = start;
-        duration = d;
         active = true;
         local_tft = tft_to_use;
         RADIUS = rad;
@@ -378,7 +374,7 @@ class Note {
         g = 50; // prev 16 10 w/o loop period
     }
     void step() {
-      if (active) {
+      if (active) {         // if Note is active: draw over previous position, calculate new position and draw there
         local_tft->drawCircle(25*(action+1), y, RADIUS, BKGND_CLR);
         v += 0.001*float(DT)*g;
         y += v*0.001*float(DT);
@@ -386,7 +382,7 @@ class Note {
       } 
 
     }
-    void checkHit() {
+    void checkHit() {           // check if active Note has been hit. if so, calculate score and deactivate it
       if (y > SCREEN_HEIGHT + RADIUS) {
         Serial.println("miss");
         active = false;
@@ -462,7 +458,7 @@ Beatmap havana_map = {{ 2,  3,  0,  0,  1,  1,  0,  3,  3,  0,  1,  2,  1,  0,  
                       354,358,360,362,364,366,368,370,376,376,380,386,388,390,392,394,396},
                       157};
 
-Beatmap map_to_play = riptide_map;
+Beatmap map_to_play = stereo_map;
 Note map_notes[175];                
 
 class UsernameGetter {
@@ -690,11 +686,13 @@ void Task1code( void * pvParameters ){
   if (game_end) { // POST state
     Serial.println("you made it to the end!");
     char thing[500];
-    Serial.println(karaoke_score);
+    float percentage;
     if (selected_game == 1) {
-      sprintf(thing, "user=%s&justdance=%i&rhythm=0&karaoke=0", user, just_dance_total);
+      percentage = float(just_dance_total) / (5 * dance_to_play.steps);
+      sprintf(thing, "user=%s&justdance=%f&rhythm=0&karaoke=0", user, percentage);
     } else if (selected_game == 2) {
-      sprintf(thing, "user=%s&justdance=0&rhythm=%d&karaoke=0", user, rhythm_score);
+      percentage = float(rhythm_score) / (100 * map_to_play.num_notes);
+      sprintf(thing, "user=%s&justdance=0&rhythm=%f&karaoke=0", user, percentage)
       rhythm_score = 0;
     } else if (selected_game == 3) {
       sprintf(thing, "user=%s&justdance=0&rhythm=0&karaoke=%f", user, karaoke_score);
