@@ -42,7 +42,7 @@ char network[] = "MIT";  //SSID for 6.08 Lab
 char password[] = ""; //Password for 6.08 Lab
 char request[15000];
 
-char host[] = "608dev-2.net";
+char host[] = host_server;
 
 uint8_t old_val;
 uint32_t timer;
@@ -65,21 +65,21 @@ int song_length = 21334 * 2; // 8 measures is 21334
 
 void post_audio(char * message, int message_len) {
   Serial.println("Posting to Server:");      
-  sprintf(request, "POST http://608dev-2.net/sandbox/sc/team64/karaoke_server_withdb.py HTTP/1.1\r\n");
+  sprintf(request, "POST karaoke_database_url HTTP/1.1\r\n");
   sprintf(request + strlen(request), "Host: %s\r\n", host);
   strcat(request, "Content-Type: application/x-www-form-urlencoded\r\n");
   sprintf(request + strlen(request), "Content-Length: %d\r\n\r\nuser=test&audio=", message_len);
   strcat(request, message);
 //  Serial.println(request);
-  do_http_request("608dev-2.net", request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
+  do_http_request(host_server, request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
 }
 
 void get_fft(char * user) {
   sprintf(request, "GET /sandbox/sc/team64/karaoke_server_withdb.py?song=stereo&user=%s HTTP/1.1\r\n", user);
-  strcat(request, "Host: 608dev-2.net\r\n");
+  strcat(request, "Host: host_server\r\n");
   strcat(request, "\r\n"); //new line from header to body
 
-  do_http_request("608dev-2.net", request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
+  do_http_request(host_server, request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
 }
 struct Riff {
   double notes[1500]; //the notes (array of doubles containing frequencies in Hz. I used https://pages.mtu.edu/~suits/notefreqs.html

@@ -39,22 +39,22 @@ void record_audio(int * index) {
 
 void post_audio(char * message, int message_len) {
   Serial.println("Posting to Server:");      
-  sprintf(request, "POST http://608dev-2.net/sandbox/sc/team64/karaoke_server_withdb.py HTTP/1.1\r\n");
+  sprintf(request, "POST karaoke_database_url HTTP/1.1\r\n");
   sprintf(request + strlen(request), "Host: %s\r\n", host);
   strcat(request, "Content-Type: application/x-www-form-urlencoded\r\n");
   sprintf(request + strlen(request), "Content-Length: %d\r\n\r\nuser=test&audio=", message_len);
   strcat(request, message);
 //  Serial.println(request);
-  do_http_request("608dev-2.net", request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
+  do_http_request(host_server, request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
 }
 
 void get_fft(char * user, float * score, char * song_title) {
   sprintf(request, "GET /sandbox/sc/team64/karaoke_server_withdb.py?song=%s&user=%s HTTP/1.1\r\n", song_title, user);
-  strcat(request, "Host: 608dev-2.net\r\n");
+  strcat(request, "Host: host_server\r\n");
   strcat(request, "\r\n"); //new line from header to body
 
   Serial.println(request);
 
-  do_http_request("608dev-2.net", request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
+  do_http_request(host_server, request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
   *score = atof(response);
 }

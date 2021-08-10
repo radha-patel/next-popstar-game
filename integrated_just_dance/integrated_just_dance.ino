@@ -201,7 +201,7 @@ char freq_buffer[100];
 char network[] = "MIT";  //SSID for 6.08 Lab
 char password[] = ""; //Password for 6.08 Lab
 
-char host[] = "608dev-2.net";
+char host[] = host_server;
 char request[2000];
 int game_end;
 char user[10];
@@ -651,13 +651,13 @@ void post_score(char* thing) {
   Serial.println("the game ended!");
   //char thing[500];
   //sprintf(thing, "user=%s&justdance=%i&rhythm=0&karaoke=0", user, score);      
-  sprintf(request, "POST http://608dev-2.net/sandbox/sc/team64/scoreboard.py HTTP/1.1\r\n");
+  sprintf(request, "POST scoreboard_url HTTP/1.1\r\n");
   sprintf(request + strlen(request), "Host: %s\r\n", host);
   strcat(request, "Content-Type: application/x-www-form-urlencoded\r\n");
   sprintf(request + strlen(request), "Content-Length: %d\r\n\r\n", strlen(thing));
   strcat(request, thing);
   Serial.println(request);
-  do_http_request("608dev-2.net", request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
+  do_http_request(host_server, request, response, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
 }
 
 int similarity_score(int correct, int actual) {
